@@ -1,0 +1,185 @@
+﻿@model FormApp.Models.Template
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Template Header -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-body">
+                    <h1 class="card-title h3 mb-4">@Model.Title</h1>
+
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" class="img-fluid mb-4 rounded" alt="Template image">
+                    }
+                </div>
+            </div>
+
+            <!-- Questions -->
+            <form id="answersForm">
+                @foreach (var question in Model.Questions)
+                {
+                    <div class="card mb-4 border-0 shadow-sm question-card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">@question.Title <span class="text-danger">*</span></h5>
+
+                            @if (!string.IsNullOrEmpty(question.Description))
+                            {
+                                <p class="text-muted mb-4">@question.Description</p>
+                            }
+
+                            @switch (question.Type)
+                            {
+                                case "SingleLine":
+                                    <input type="text" class="form-control" name="answer_@question.Id" placeholder="Your answer">
+                                    break;
+
+                                case "MultiLine":
+                                    <textarea class="form-control" name="answer_@question.Id" rows="3" placeholder="Your answer"></textarea>
+                                    break;
+
+                                case "Integer":
+                                    <input type="number" class="form-control" name="answer_@question.Id" placeholder="Your answer">
+                                    break;
+
+                                case "Checkbox":
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="answer_@question.Id" id="question_@question.Id">
+                                        <label class="form-check-label" for="question_@question.Id">Yes</label>
+                                    </div>
+                                    break;
+
+                                case "Radio":
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="answer_@question.Id" id="yes_@question.Id" value="Yes">
+                                        <label class="form-check-label" for="yes_@question.Id">Yes</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="answer_@question.Id" id="no_@question.Id" value="No">
+                                        <label class="form-check-label" for="no_@question.Id">No</label>
+                                    </div>
+                                    break;
+                            }
+                        </div>
+                    </div>
+                }
+            </form>
+
+            <!-- Email me a copy checkbox -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="emailCopyCheckbox">
+                        <label class="form-check-label" for="emailCopyCheckbox">E-mail me a copy of my answers</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="text-end">
+                <button type="button" class="btn btn-primary btn-lg" onclick="saveAnswers()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .question-card {
+        transition: transform 0.2s;
+    }
+
+        .question-card:hover {
+            transform: translateY(-2px);
+        }
+
+    .card {
+        border-radius: 8px;
+    }
+
+    .form-control {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 0.75rem;
+    }
+
+        .form-control:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.25);
+        }
+</style>
+
+<script>
+
+        function saveAnswers() {
+        const form = document.getElementById('answersForm');
+        const answers = [];
+        var userId = '@Context.Session.GetInt32("UserId")'; // Get UserId from session
+
+        form.querySelectorAll('input, textarea').forEach(input => {
+            const questionId = input.name.split('_')[1];
+
+            if (input.type === 'radio' && input.checked) {
+                answers.push({
+                    QuestionId: parseInt(questionId),
+                    Value: input.value.toString(),
+                    UserId: parseInt(userId)
+                });
+            } else if (input.type !== 'radio') {
+                answers.push({
+                    QuestionId: parseInt(questionId),
+                    Value: input.type === 'checkbox' ? input.checked.toString() : input.value.toString(),
+                    UserId: parseInt(userId)
+                });
+            }
+        });
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to save your answers?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, save it!',
+            cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/Admin/SaveAnswers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(answers)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Toastify({
+                            text: "Answers saved successfully!",
+                            duration: 3000,
+                            backgroundColor: "green",
+                            close: true
+                        }).showToast();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: data.message,
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'An error occurred while saving answers.',
+                    });
+                });
+            }
+        });
+    }
+
+</script>

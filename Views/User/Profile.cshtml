@@ -14,7 +14,7 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="forms-tab" data-bs-toggle="tab" data-bs-target="#forms" type="button" role="tab">
-                My Forms
+                Submitted Forms
             </button>
         </li>
     </ul>
@@ -22,8 +22,11 @@
     <div class="tab-content" id="profileTabsContent">
         <div class="tab-pane fade show active" id="templates" role="tabpanel">
             <div class="d-flex justify-content-end my-3">
-                <button class="btn btn-primary" onclick="showCreateTemplateModal()">Create New Template</button>
+                <button class="btn btn-primary" onclick="showCreateTemplateModal()">
+                    <i class="bi bi-plus-circle"></i> Create
+                </button>
             </div>
+
 
             <!-- Template Table -->
             <div id="templateTable"></div>
@@ -39,49 +42,61 @@
 <div class="modal fade" id="templateModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-light">
                 <h5 class="modal-title" id="templateModalTitle">Create Template</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="templateForm">
                     <input type="hidden" id="templateId">
-                    <div class="mb-3">
-                        <label class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" id="description" rows="3" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Topic</label>
-                        <select class="form-control" id="topic" required>
-                            <option value="Education">Education</option>
-                            <option value="Quiz">Quiz</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Image URL</label>
-                        <input type="url" class="form-control" id="imageUrl">
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="isPublic">
-                            <label class="form-check-label">Public Template</label>
+                    <!-- Template Details Section -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Template Details</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="title" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Topic <span class="text-danger">*</span></label>
+                                <select class="form-control" id="topic" required>
+                                    <option value="Education">Education</option>
+                                    <option value="Quiz">Quiz</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Description <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="description" rows="3" required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Image URL</label>
+                                <input type="url" class="form-control" id="imageUrl">
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mt-4 pt-2">
+                                    <input class="form-check-input" type="checkbox" id="isPublic">
+                                    <label class="form-check-label">Public Template</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Questions Section -->
-                    <div id="questionsContainer">
-                        <h5>Questions</h5>
-                        <div id="questionsList"></div>
-                        <button type="button" class="btn btn-secondary mt-2" onclick="addQuestion()">Add Question</button>
+                    <!-- Add Question Section -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Questions</h5>
+                        <div id="questionsList" class="mb-3"></div>
+                        <div class="d-flex align-items-center text-muted " onclick="addQuestion()" style="gap: 10px; cursor: pointer;">
+                            <div class="p-3 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background-color: #f0f0f0; border-radius: 8px;">
+                                <i class="bi bi-plus" style="font-size: 1.5rem; color: #6c757d;"></i>
+                            </div>
+                            <span class="fw-medium" style="color: #6c757d;">Add Question</span>
+                        </div>
                     </div>
+
                 </form>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer bg-light">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="saveTemplate()">Save Template</button>
             </div>
@@ -117,6 +132,8 @@
         });
 
         function initializeTables() {
+            const isAdmin = document.querySelector('.container').dataset.isAdmin === 'true';
+
             templateTable = new Tabulator("#templateTable", {
                 ajaxURL: "/User/GetTemplates",
                 layout: "fitColumns",
@@ -124,39 +141,38 @@
                     { title: "Title", field: "title", sorter: "string" },
                     { title: "Topic", field: "topic", sorter: "string" },
                     { title: "Public", field: "isPublic", formatter: "tickCross" },
+                    ...(isAdmin ? [{ title: "Created By", field: "createdBy", sorter: "string" }] : []),
                     {
                         title: "Actions",
                         formatter: function(cell) {
                             const data = cell.getRow().getData();
                             return `
                                 <button class="btn btn-info btn-sm" onclick="viewTemplateQuestions(${data.id})">View Questions</button>
-                                <button class="btn btn-info btn-sm" onclick="editTemplate(${data.id})">Edit</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${data.id})">Delete</button>
+                                 <button class="btn btn-info btn-sm" onclick="editTemplate(${data.id})"><i class="bi bi-pen"></i></button>
+                                 <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${data.id})"><i class="bi bi-trash3"></i></button>
                             `;
                         }
                     }
                 ]
             });
-
+            
             formTable = new Tabulator("#formTable", {
-                ajaxURL: "/User/GetForms",
+                ajaxURL: "/Admin/GetFormAnswers", // Endpoint to get data
+                ajaxResponse: function(url, params, response) {
+                    console.log("Tabulator received data:", response);  // Check data structure here
+                    return response;  // Make sure we return the data to be displayed in the table
+                },
                 layout: "fitColumns",
                 columns: [
-                    { title: "Template", field: "template.title", sorter: "string" },
-                    { title: "Created", field: "createdAt", sorter: "date" },
-                    {
-                        title: "Actions",
-                        formatter: function(cell) {
-                            const data = cell.getRow().getData();
-                            return `
-                                <button class="btn btn-info btn-sm" onclick="viewForm(${data.id})">View</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteForm(${data.id})">Delete</button>
-                            `;
-                        }
-                    }
+                    { title: "Template Title", field: "templateTitle", headerFilter: "input", sorter: "string" },
+                                     { title: "User", field: "username", headerFilter: "input", sorter: "string" },
+                    { title: "Question Title", field: "questionTitle", headerFilter: "input", sorter: "string" },
+                    { title: "Answer", field: "answer", headerFilter: "input", sorter: "string" }
                 ]
             });
         }
+
+        // Rest of your JavaScript functions remain the same
 
         function showCreateTemplateModal() {
             $('#templateId').val('');
@@ -166,53 +182,186 @@
             $('#templateModal').modal('show');
         }
 
+
         function addQuestion() {
             const questionHtml = `
-                <div class="question-item border p-3 mb-2">
-                    <div class="mb-2">
-                        <label class="form-label">Question Title</label>
-                        <input type="text" class="form-control question-title" required>
+                <div class="question-item card mb-3 border-grey">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="card-title mb-0" style="color: #495057;">New Question</h6>
+                            <button type="button" class="btn btn-sm btn-link text-danger" onclick="this.closest('.question-item').remove()">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" style="color: #6c757d;">Question Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control question-title" required style="border-color: #dee2e6;">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="color: #6c757d;">Type <span class="text-danger">*</span></label>
+                                <select class="form-control question-type" required style="border-color: #dee2e6;">
+                                    <option value="SingleLine">Single Line Text</option>
+                                    <option value="MultiLine">Multi Line Text</option>
+                                    <option value="Integer">Integer</option>
+                                      <option value="Radio">Radio</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" style="color: #6c757d;">Description</label>
+                                <input type="text" class="form-control question-description" style="border-color: #dee2e6;">
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input question-show-table" style="border-color: #dee2e6;">
+                                    <label class="form-check-label" style="color: #6c757d;">Show in Table</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label">Description</label>
-                        <input type="text" class="form-control question-description">
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Type</label>
-                        <select class="form-control question-type" required>
-                            <option value="SingleLine">Single Line Text</option>
-                            <option value="MultiLine">Multi Line Text</option>
-                            <option value="Integer">Integer</option>
-                            <option value="Checkbox">Checkbox</option>
-                        </select>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input type="checkbox" class="form-check-input question-show-table">
-                        <label class="form-check-label">Show in Table</label>
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Remove Question</button>
                 </div>
             `;
             $('#questionsList').append(questionHtml);
         }
 
+        // function addQuestion() {
+        //     const questionHtml = `
+        //         <div class="question-item card mb-3 border-grey">
+        //             <div class="card-body">
+        //                 <div class="d-flex justify-content-between align-items-center mb-3">
+        //                     <h6 class="card-title mb-0" style="color: #495057;">New Question</h6>
+        //                     <button type="button" class="btn btn-sm btn-link text-danger" onclick="this.closest('.question-item').remove()">
+        //                         <i class="bi bi-trash"></i>
+        //                     </button>
+        //                 </div>
+        //                 <div class="row g-3">
+        //                     <div class="col-md-6">
+        //                         <label class="form-label" style="color: #6c757d;">Question Title <span class="text-danger">*</span></label>
+        //                         <input type="text" class="form-control question-title" required style="border-color: #dee2e6;">
+        //                     </div>
+        //                     <div class="col-md-6">
+        //                         <label class="form-label" style="color: #6c757d;">Type <span class="text-danger">*</span></label>
+        //                         <select class="form-control question-type" required style="border-color: #dee2e6;" onchange="toggleCheckboxOptions(this)">
+        //                             <option value="SingleLine">Single Line Text</option>
+        //                             <option value="MultiLine">Multi Line Text</option>
+        //                             <option value="Integer">Integer</option>
+        //                             <option value="Checkbox">Checkbox</option>
+        //                             <option value="Radio">Radio</option>
+        //                         </select>
+        //                     </div>
+        //                     <div class="col-12">
+        //                         <label class="form-label" style="color: #6c757d;">Description</label>
+        //                         <input type="text" class="form-control question-description" style="border-color: #dee2e6;">
+        //                     </div>
+        //                     <div class="col-12">
+        //                         <div class="form-check">
+        //                             <input type="checkbox" class="form-check-input question-show-table" style="border-color: #dee2e6;">
+        //                             <label class="form-check-label" style="color: #6c757d;">Show in Table</label>
+        //                         </div>
+        //                     </div>
+
+        //                     <!-- Dynamic checkbox options will be appended here -->
+        //                     <div class="col-12 checkbox-options-container" style="display: none;">
+        //                         <label class="form-label" style="color: #6c757d;">Multiple Choice Options</label>
+        //                         <div class="checkbox-options-list">
+        //                             <div class="input-group mb-2">
+        //                                 <input type="text" class="form-control checkbox-option" placeholder="Option 1" style="border-color: #dee2e6;">
+        //                                 <button type="button" class="btn btn-sm btn-outline-secondary" onclick="removeOption(this)">-</button>
+        //                             </div>
+        //                         </div>
+        //                         <button type="button" class="btn btn-sm btn-primary" onclick="addCheckboxOption(this)">+</button>
+        //                     </div>
+        //                 </div>
+        //             </div>
+        //         </div>
+        //     `;
+        //     $('#questionsList').append(questionHtml);
+        // }
+
+        // Toggle the visibility of the options for Checkbox type
+        function toggleCheckboxOptions(selectElement) {
+            const checkboxOptionsContainer = $(selectElement).closest('.question-item').find('.checkbox-options-container');
+
+            if (selectElement.value === 'Checkbox') {
+                checkboxOptionsContainer.show();
+            } else {
+                checkboxOptionsContainer.hide();
+                // Remove all added options if the type is changed
+                checkboxOptionsContainer.find('.checkbox-options-list').empty();
+            }
+        }
+
+        // Add a new input box for checkbox option
+        function addCheckboxOption(button) {
+            const newOptionHtml = `
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control checkbox-option" placeholder="Option" style="border-color: #dee2e6;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="removeOption(this)">-</button>
+                </div>
+            `;
+            $(button).prev('.checkbox-options-list').append(newOptionHtml);
+        }
+
+        // Remove a checkbox option input box
+        function removeOption(button) {
+            $(button).closest('.input-group').remove();
+        }
+
+
+
         function saveTemplate() {
+            // Validate required fields
+            const requiredFields = [
+                { selector: '#title', message: 'Title is required' },
+                { selector: '#topic', message: 'Topic is required' },
+                { selector: '#description', message: 'Description is required' }
+            ];
+
+            let isValid = true;
+            requiredFields.forEach(field => {
+                const value = $(field.selector).val().trim();
+                if (!value) {
+                    toastr.error(field.message);
+                    isValid = false;
+                }
+            });
+
+            // Validate questions
             const questions = [];
             $('.question-item').each(function() {
+                const questionTitle = $(this).find('.question-title').val().trim();
+                const questionType = $(this).find('.question-type').val().trim();
+
+                if (!questionTitle) {
+                    toastr.error('Question title is required for all questions');
+                    isValid = false;
+                }
+
+                if (!questionType) {
+                    toastr.error('Question type is required for all questions');
+                    isValid = false;
+                }
+
                 questions.push({
-                    title: $(this).find('.question-title').val(),
-                    description: $(this).find('.question-description').val(),
-                    type: $(this).find('.question-type').val(),
+                    title: questionTitle,
+                    description: $(this).find('.question-description').val().trim(),
+                    type: questionType,
                     showInTable: $(this).find('.question-show-table').is(':checked')
                 });
             });
 
+            // If validation fails, stop the function
+            if (!isValid) {
+                return;
+            }
+
+            // Proceed with saving the template if all fields are valid
             const templateData = {
                 id: $('#templateId').val() || 0,
-                title: $('#title').val(),
-                description: $('#description').val(),
-                topic: $('#topic').val(),
-                imageUrl: $('#imageUrl').val(),
+                title: $('#title').val().trim(),
+                description: $('#description').val().trim(),
+                topic: $('#topic').val().trim(),
+                imageUrl: $('#imageUrl').val().trim(),
                 isPublic: $('#isPublic').is(':checked'),
                 questions: questions
             };
@@ -239,6 +388,11 @@
 
         function editTemplate(id) {
             $.get(`/User/GetTemplate/${id}`, function(template) {
+                if (template.success === false) {
+                    toastr.error(template.message);
+                    return;
+                }
+
                 $('#templateId').val(template.id);
                 $('#title').val(template.title);
                 $('#description').val(template.description);
@@ -249,7 +403,10 @@
                 $('#questionsList').empty();
                 template.questions.forEach(function(question) {
                     const questionHtml = `
-                        <div class="question-item border p-3 mb-2">
+                        <div class="question-item border p-3 mb-2 position-relative">
+                            <button type="button" class="btn position-absolute top-0 end-0 m-2" onclick="this.parentElement.remove()">
+                                <i class="bi bi-trash3"></i>
+                            </button>
                             <div class="mb-2">
                                 <label class="form-label">Question Title</label>
                                 <input type="text" class="form-control question-title" value="${question.title}" required>
@@ -264,14 +421,13 @@
                                     <option value="SingleLine" ${question.type === 'SingleLine' ? 'selected' : ''}>Single Line Text</option>
                                     <option value="MultiLine" ${question.type === 'MultiLine' ? 'selected' : ''}>Multi Line Text</option>
                                     <option value="Integer" ${question.type === 'Integer' ? 'selected' : ''}>Integer</option>
-                                    <option value="Checkbox" ${question.type === 'Checkbox' ? 'selected' : ''}>Checkbox</option>
+                                    <option value="Radio" ${question.type === 'Radio' ? 'selected' : ''}>Radio</option>
                                 </select>
                             </div>
                             <div class="form-check mb-2">
                                 <input type="checkbox" class="form-check-input question-show-table" ${question.showInTable ? 'checked' : ''}>
                                 <label class="form-check-label">Show in Table</label>
                             </div>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Remove Question</button>
                         </div>
                     `;
                     $('#questionsList').append(questionHtml);
@@ -279,41 +435,21 @@
 
                 $('#templateModalTitle').text('Edit Template');
                 $('#templateModal').modal('show');
+            }).fail(function() {
+                toastr.error('An error occurred while loading the template.');
             });
         }
+
+
 
         function viewTemplateQuestions(id) {
-            $.get(`/User/GetTemplateQuestions/${id}`, function(template) {
-                if (template.success === false) {
-                    toastr.error(template.message);
-                    return;
-                }
-
-                $('#viewQuestionsModalTitle').text(template.title);
-
-                // Filter questions where ShowInTable is true
-                const filteredQuestions = template.questions.filter(question => question.showInTable);
-
-                const questionListHtml = filteredQuestions.map(question => {
-                    return `
-                        <div class="border p-3 mb-2">
-                            <h5>${question.title}</h5>
-                            <p>${question.description}</p>
-                            <p>Type: ${question.type}</p>
-                        </div>
-                    `;
-                }).join('');
-
-                $('#viewQuestionsContainer').html(questionListHtml);
-                $('#viewQuestionsModal').modal('show');
-            }).fail(function() {
-                toastr.error('An error occurred while loading the questions.');
-            });
+            window.location.href = `/User/ViewTemplateQuestions/${id}`;
         }
 
 
 
-                function deleteTemplate(id) {
+
+       function deleteTemplate(id) {
             Swal.fire({
                 title: 'Are you sure?',
                 text: 'You won\'t be able to revert this!',

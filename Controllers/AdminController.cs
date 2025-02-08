@@ -65,5 +65,62 @@ namespace FormApp.Controllers
             }
             return Json(new { success = false, message = "User not found" });
         }
+
+        //[HttpPost]
+        //public IActionResult SaveAnswers([FromBody] List<Answer> answers)
+        //{
+        //    if (answers == null || !answers.Any())
+        //    {
+        //        return Json(new { success = false, message = "No answers provided" });
+        //    }
+
+        //    foreach (var answer in answers)
+        //    {
+        //        _adminRepository.SaveAnswer(answer);
+        //    }
+
+        //    return Json(new { success = true, message = "Answers saved successfully" });
+        //}
+
+        [HttpPost]
+        public IActionResult SaveAnswers([FromBody] List<Answer> answers)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+            {
+                return Json(new { success = false, message = "User not logged in" });
+            }
+
+            if (answers == null || !answers.Any())
+            {
+                return Json(new { success = false, message = "No answers provided" });
+            }
+
+            foreach (var answer in answers)
+            {
+                answer.UserId = userId.Value; // Assigning UserId
+                _adminRepository.SaveAnswer(answer);
+            }
+
+            return Json(new { success = true, message = "Answers saved successfully" });
+        }
+
+        [HttpGet]
+        public IActionResult GetFormAnswers()
+        {
+            var answers = _adminRepository.GetAllAnswersWithDetails();
+
+            var response = answers.Select(a => new
+            {
+                TemplateTitle = a.Question.Template.Title,
+                QuestionTitle = a.Question.Title,
+                Answer = a.Value,
+                Username = a.User.Username
+            }).ToList();
+
+            return Json(response);
+        }
+
     }
 }

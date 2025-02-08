@@ -43,15 +43,6 @@ namespace FormApp.Repositories
                 .ToList();
         }
 
-        public List<Form> GetFormsByUserId(int userId)
-        {
-            return _context.Forms
-                .Include(f => f.Template)
-                .Include(f => f.Answers)
-                .Where(f => f.UserId == userId)
-                .ToList();
-        }
-
         public Template GetTemplateById(int id)
         {
             return _context.Templates
@@ -145,6 +136,14 @@ namespace FormApp.Repositories
 
                 _context.SaveChanges();
             }
+        }
+
+        public List<Template> GetAllTemplates()
+        {
+            return _context.Templates
+                .Include(t => t.Questions)
+                .Include(t => t.User)
+                .ToList();
         }
 
     }

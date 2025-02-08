@@ -102,67 +102,95 @@ namespace FormApp.Controllers
         public JsonResult GetTemplates()
         {
             var userId = HttpContext.Session.GetInt32("UserId");
-            var templates = _userRepository.GetTemplatesByUserId(userId.Value)
-                .Select(t => new TemplateDto
+            var isAdmin = HttpContext.Session.GetString("IsAdmin") == "true";
+
+            var templates = isAdmin
+                ? _userRepository.GetAllTemplates()
+                : _userRepository.GetTemplatesByUserId(userId.Value);
+
+            var templateDtos = templates.Select(t => new TemplateDto
+            {
+                Id = t.Id,
+                Title = t.Title,
+                Description = t.Description,
+                Topic = t.Topic,
+                ImageUrl = t.ImageUrl,
+                IsPublic = t.IsPublic,
+                CreatedBy = t.User?.Username ?? "Unknown", // Add username for admin view
+                Questions = t.Questions.Select(q => new QuestionDto
                 {
-                    Id = t.Id,
-                    Title = t.Title,
-                    Description = t.Description,
-                    Topic = t.Topic,
-                    ImageUrl = t.ImageUrl,
-                    IsPublic = t.IsPublic,
-                    Questions = t.Questions.Select(q => new QuestionDto
-                    {
-                        Id = q.Id,
-                        Title = q.Title,
-                        Description = q.Description,
-                        Type = q.Type,
-                        ShowInTable = q.ShowInTable
-                    }).ToList()
-                }).ToList();
+                    Id = q.Id,
+                    Title = q.Title,
+                    Description = q.Description,
+                    Type = q.Type,
+                    ShowInTable = q.ShowInTable
+                }).ToList()
+            }).ToList();
 
-            return Json(templates);
-        }
-
-        [HttpGet]
-        public JsonResult GetForms()
-        {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            return Json(_userRepository.GetFormsByUserId(userId.Value));
+            return Json(templateDtos);
         }
 
         [HttpGet]
         public JsonResult GetTemplate(int id)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
+            var isAdmin = HttpContext.Session.GetString("IsAdmin") == "true";
+
+            if (!userId.HasValue)
+            {
+                return Json(new { success = false, message = "Not authenticated" });
+            }
+
             var template = _userRepository.GetTemplateById(id);
-            if (template?.UserId != userId)
+            if (template == null || (!isAdmin && template.UserId != userId.Value))
             {
                 return Json(new { success = false, message = "Template not found" });
             }
-            return Json(template);
+
+            var templateDto = new TemplateDto
+            {
+                Id = template.Id,
+                Title = template.Title,
+                Description = template.Description,
+                Topic = template.Topic,
+                ImageUrl = template.ImageUrl,
+                IsPublic = template.IsPublic,
+                CreatedBy = template.User?.Username ?? "Unknown",
+                Questions = template.Questions.Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Title = q.Title,
+                    Description = q.Description,
+                    Type = q.Type,
+                    ShowInTable = q.ShowInTable
+                }).ToList()
+            };
+
+            return Json(templateDto);
         }
 
         [HttpPost]
         public JsonResult SaveTemplate([FromBody] Template template)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
+            var isAdmin = HttpContext.Session.GetString("IsAdmin") == "true";
+
             if (!userId.HasValue)
             {
                 return Json(new { success = false, message = "Not authenticated" });
             }
 
-            template.UserId = userId.Value;
             if (template.Id == 0)
             {
+                template.UserId = userId.Value;
                 _userRepository.AddTemplate(template);
             }
             else
             {
                 var existingTemplate = _userRepository.GetTemplateById(template.Id);
-                if (existingTemplate?.UserId != userId)
+                if (existingTemplate == null || (!isAdmin && existingTemplate.UserId != userId))
                 {
-                    return Json(new { success = false, message = "Template not found" });
+                    return Json(new { success = false, message = "Template not found or unauthorized" });
                 }
                 _userRepository.UpdateTemplate(template);
             }
@@ -174,15 +202,18 @@ namespace FormApp.Controllers
         public JsonResult DeleteTemplate(int id)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
+            var isAdmin = HttpContext.Session.GetString("IsAdmin") == "true";
+
             var template = _userRepository.GetTemplateById(id);
-            if (template?.UserId != userId)
+            if (template == null || (!isAdmin && template.UserId != userId))
             {
-                return Json(new { success = false, message = "Template not found" });
+                return Json(new { success = false, message = "Template not found or unauthorized" });
             }
 
             _userRepository.DeleteTemplate(id);
             return Json(new { success = true, message = "Template deleted successfully" });
         }
+
 
         [HttpPost]
         public JsonResult DeleteForm(int id)
@@ -198,35 +229,26 @@ namespace FormApp.Controllers
             return Json(new { success = true, message = "Form deleted successfully" });
         }
 
+        
+
         [HttpGet]
-        public JsonResult GetTemplateQuestions(int id)
+        public IActionResult ViewTemplateQuestions(int id)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
-            var template = _userRepository.GetTemplateById(id);
-            if (template?.UserId != userId)
+            var isAdmin = HttpContext.Session.GetString("IsAdmin") == "true";
+
+            if (!userId.HasValue)
             {
-                return Json(new { success = false, message = "Template not found" });
+                return RedirectToAction("Login");
             }
 
-            var templateDto = new TemplateDto
+            var template = _userRepository.GetTemplateById(id);
+            if (template == null || (!isAdmin && template.UserId != userId))
             {
-                Id = template.Id,
-                Title = template.Title,
-                Description = template.Description,
-                Topic = template.Topic,
-                ImageUrl = template.ImageUrl,
-                IsPublic = template.IsPublic,
-                Questions = template.Questions.Select(q => new QuestionDto
-                {
-                    Id = q.Id,
-                    Title = q.Title,
-                    Description = q.Description,
-                    Type = q.Type,
-                    ShowInTable = q.ShowInTable
-                }).ToList()
-            };
+                return NotFound();
+            }
 
-            return Json(templateDto);
+            return View(template);
         }
 
 

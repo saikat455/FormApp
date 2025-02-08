@@ -3292,11 +3292,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\one\\source\\repos\\FormApp\\FormApp.csproj",
+      "projectUniqueName": "C:\\Users\\one\\Documents\\Github\\FormApp\\FormApp.csproj",
       "projectName": "FormApp",
-      "projectPath": "C:\\Users\\one\\source\\repos\\FormApp\\FormApp.csproj",
+      "projectPath": "C:\\Users\\one\\Documents\\Github\\FormApp\\FormApp.csproj",
       "packagesPath": "C:\\Users\\one\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\one\\source\\repos\\FormApp\\obj\\",
+      "outputPath": "C:\\Users\\one\\Documents\\Github\\FormApp\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

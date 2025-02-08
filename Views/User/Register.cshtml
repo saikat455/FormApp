@@ -2,6 +2,13 @@
     ViewData["Title"] = "Register";
 }
 
+<!-- Full Page Spinner (Initially Hidden) -->
+<div id="fullPageSpinner" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75" style="z-index: 1050;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
 <div class="row justify-content-center mt-5">
     <div class="col-md-6">
         <div class="card">
@@ -22,10 +29,14 @@
                         <label class="form-label">Password</label>
                         <input type="password" class="form-control" id="password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Register</button>
+                    <button type="submit" class="btn btn-primary w-100" id="registerButton">
+                        <span id="buttonSpinner" class="spinner-border spinner-border-sm me-2 d-none"></span>
+                        Register
+                    </button>
                 </form>
                 <div class="mt-3 text-center">
-                    <a href="/User/Login">Already have an account? Login here</a>
+                    <span>Already have an account? </span>
+                    <a href="/User/Login">Login here</a>
                 </div>
             </div>
         </div>
@@ -37,6 +48,11 @@
         $(document).ready(function () {
             $('#registerForm').on('submit', function (e) {
                 e.preventDefault();
+
+                // Show the spinner
+                $('#buttonSpinner').removeClass('d-none');
+                $('#registerButton').prop('disabled', true).text('Registering...');
+                $('#fullPageSpinner').removeClass('d-none');
 
                 $.ajax({
                     url: '/User/Register',
@@ -59,6 +75,12 @@
                     },
                     error: function () {
                         toastr.error('An error occurred');
+                    },
+                    complete: function () {
+                        // Hide the spinner and enable button
+                        $('#buttonSpinner').addClass('d-none');
+                        $('#registerButton').prop('disabled', false).text('Register');
+                        $('#fullPageSpinner').addClass('d-none');
                     }
                 });
             });

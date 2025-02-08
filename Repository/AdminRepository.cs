@@ -56,5 +56,21 @@ namespace FormApp.Repositories
             }
             return false;
         }
+
+        public void SaveAnswer(Answer answer)
+        {
+            _context.Answers.Add(answer);
+            _context.SaveChanges();
+        }
+
+        public List<Answer> GetAllAnswersWithDetails()
+        {
+            return _context.Answers
+                .Include(a => a.Question)
+                .ThenInclude(q => q.Template)
+                .Include(a => a.User)
+                .ToList();
+        }
+
     }
 }

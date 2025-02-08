@@ -11,5 +11,8 @@ namespace FormApp.Repositories
         User GetUserById(int userId);
         void SaveChanges();
         bool ToggleAdminStatus(int userId);
+        void SaveAnswer(Answer answer);
+        List<Answer> GetAllAnswersWithDetails();
+
     }
 }

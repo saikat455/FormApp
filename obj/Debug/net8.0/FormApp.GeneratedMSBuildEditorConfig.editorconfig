@@ -17,41 +17,45 @@ build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = FormApp
 build_property.RootNamespace = FormApp
-build_property.ProjectDir = C:\Users\one\source\repos\FormApp\
+build_property.ProjectDir = C:\Users\one\Documents\Github\FormApp\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\one\source\repos\FormApp
+build_property.MSBuildProjectDirectory = C:\Users\one\Documents\Github\FormApp
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/one/source/repos/FormApp/Views/Admin/Dashboard.cshtml]
+[C:/Users/one/Documents/Github/FormApp/Views/Admin/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/one/source/repos/FormApp/Views/Shared/_Layout.cshtml]
+[C:/Users/one/Documents/Github/FormApp/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/one/source/repos/FormApp/Views/User/Login.cshtml]
+[C:/Users/one/Documents/Github/FormApp/Views/User/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/one/source/repos/FormApp/Views/User/Profile.cshtml]
+[C:/Users/one/Documents/Github/FormApp/Views/User/Profile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxQcm9maWxlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/one/source/repos/FormApp/Views/User/Register.cshtml]
+[C:/Users/one/Documents/Github/FormApp/Views/User/Register.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/one/source/repos/FormApp/Views/_ViewImports.cshtml]
+[C:/Users/one/Documents/Github/FormApp/Views/User/ViewTemplateQuestions.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxWaWV3VGVtcGxhdGVRdWVzdGlvbnMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/one/Documents/Github/FormApp/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/one/source/repos/FormApp/Views/_ViewStart.cshtml]
+[C:/Users/one/Documents/Github/FormApp/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
