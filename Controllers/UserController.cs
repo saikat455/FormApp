@@ -1,4 +1,5 @@
 using FormApp.DTO;
+using FormApp.Helpers;
 using FormApp.Models;
 using FormApp.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -251,6 +252,25 @@ namespace FormApp.Controllers
             return View(template);
         }
 
+        // Add this action to your UserController
+        [HttpPost]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return Json(new { success = false, message = "No file uploaded" });
+                }
+
+                var imageUrl = await CloudinaryHelper.UploadImage(file);
+                return Json(new { success = true, imageUrl = imageUrl });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Failed to upload image" });
+            }
+        }
 
     }
 

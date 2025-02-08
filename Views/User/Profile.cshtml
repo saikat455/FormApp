@@ -27,9 +27,10 @@
                 </button>
             </div>
 
-
-            <!-- Template Table -->
-            <div id="templateTable"></div>
+            <!-- Template Cards Grid -->
+            <div class="row" id="templateGrid">
+                <!-- Template cards will be dynamically loaded here -->
+            </div>
         </div>
 
         <div class="tab-pane fade" id="forms" role="tabpanel">
@@ -70,9 +71,14 @@
                                 <textarea class="form-control" id="description" rows="3" required></textarea>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Image URL</label>
-                                <input type="url" class="form-control" id="imageUrl">
+                                <label class="form-label">Template Image</label>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <input type="file" class="form-control" id="imageFile" accept="image/*">
+                                    <img id="imagePreview" src="" alt="" style="max-height: 40px; display: none;">
+                                </div>
+                                <input type="hidden" id="imageUrl">
                             </div>
+
                             <div class="col-md-6">
                                 <div class="form-check mt-4 pt-2">
                                     <input class="form-check-input" type="checkbox" id="isPublic">
@@ -124,55 +130,110 @@
 
 @section Scripts {
     <script>
-        let templateTable;
-        let formTable;
-
         $(document).ready(function() {
-            initializeTables();
+            loadTemplates();
         });
 
-        function initializeTables() {
-            const isAdmin = document.querySelector('.container').dataset.isAdmin === 'true';
+        async function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
 
-            templateTable = new Tabulator("#templateTable", {
-                ajaxURL: "/User/GetTemplates",
-                layout: "fitColumns",
-                columns: [
-                    { title: "Title", field: "title", sorter: "string" },
-                    { title: "Topic", field: "topic", sorter: "string" },
-                    { title: "Public", field: "isPublic", formatter: "tickCross" },
-                    ...(isAdmin ? [{ title: "Created By", field: "createdBy", sorter: "string" }] : []),
-                    {
-                        title: "Actions",
-                        formatter: function(cell) {
-                            const data = cell.getRow().getData();
-                            return `
-                                <button class="btn btn-info btn-sm" onclick="viewTemplateQuestions(${data.id})">View Questions</button>
-                                 <button class="btn btn-info btn-sm" onclick="editTemplate(${data.id})"><i class="bi bi-pen"></i></button>
-                                 <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${data.id})"><i class="bi bi-trash3"></i></button>
-                            `;
-                        }
-                    }
-                ]
-            });
-            
-            formTable = new Tabulator("#formTable", {
-                ajaxURL: "/Admin/GetFormAnswers", // Endpoint to get data
-                ajaxResponse: function(url, params, response) {
-                    console.log("Tabulator received data:", response);  // Check data structure here
-                    return response;  // Make sure we return the data to be displayed in the table
-                },
-                layout: "fitColumns",
-                columns: [
-                    { title: "Template Title", field: "templateTitle", headerFilter: "input", sorter: "string" },
-                                     { title: "User", field: "username", headerFilter: "input", sorter: "string" },
-                    { title: "Question Title", field: "questionTitle", headerFilter: "input", sorter: "string" },
-                    { title: "Answer", field: "answer", headerFilter: "input", sorter: "string" }
-                ]
-            });
+            try {
+                const response = await fetch('/User/UploadImage', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                return data.imageUrl;
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                toastr.error('Failed to upload image');
+                return null;
+            }
         }
 
-        // Rest of your JavaScript functions remain the same
+        // Add event listener for image file input
+        $('#imageFile').change(async function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imagePreview').attr('src', e.target.result).show();
+                };
+                reader.readAsDataURL(file);
+
+                // Upload to Cloudinary
+                const imageUrl = await uploadImage(file);
+                if (imageUrl) {
+                    $('#imageUrl').val(imageUrl);
+                }
+            }
+        });
+
+
+        function loadTemplates() {
+            $.ajax({
+                url: "/User/GetTemplates",
+                type: "GET",
+                success: function(response) {
+                    const templateGrid = $('#templateGrid');
+                    templateGrid.empty();
+
+                    if (response.length === 0) {
+                        templateGrid.html('<p class="text-muted">No templates found.</p>');
+                        return;
+                    }
+
+                            response.forEach(template => {
+            const cardHtml = `
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        ${template.imageUrl ? `
+                            <div class="card-img-top-wrapper" style="width: 100%; overflow: hidden;">
+                                <img src="${template.imageUrl}"
+                                     class="card-img-top"
+                                     alt="${template.title}"
+                                     style="width: 100%; height: auto; object-fit: contain;">
+                            </div>
+                        ` : `
+                            <div class="card-img-top-wrapper bg-light d-flex align-items-center justify-content-center"
+                                 style="height: 250px;">
+                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        `}
+                        <div class="card-body">
+                            <h5 class="card-title">${template.title}</h5>
+                            <p class="card-text">${template.description}</p>
+                            <p class="card-text"><small class="text-muted">Topic: ${template.topic}</small></p>
+                            <p class="card-text"><small class="text-muted">Public: ${template.isPublic ? 'Yes' : 'No'}</small></p>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-info btn-sm" onclick="viewTemplateQuestions(${template.id})">
+                                    View Questions
+                                </button>
+                                <button class="btn btn-warning btn-sm" onclick="editTemplate(${template.id})">
+                                    <i class="bi bi-pen"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${template.id})">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            templateGrid.append(cardHtml);
+        });
+
+
+
+
+                },
+                error: function() {
+                    toastr.error('An error occurred while loading templates.');
+                }
+            });
+        }
 
         function showCreateTemplateModal() {
             $('#templateId').val('');
@@ -181,7 +242,6 @@
             $('#templateModalTitle').text('Create Template');
             $('#templateModal').modal('show');
         }
-
 
         function addQuestion() {
             const questionHtml = `
@@ -204,7 +264,7 @@
                                     <option value="SingleLine">Single Line Text</option>
                                     <option value="MultiLine">Multi Line Text</option>
                                     <option value="Integer">Integer</option>
-                                      <option value="Radio">Radio</option>
+                                    <option value="Radio">Radio</option>
                                 </select>
                             </div>
                             <div class="col-12">
@@ -224,93 +284,7 @@
             $('#questionsList').append(questionHtml);
         }
 
-        // function addQuestion() {
-        //     const questionHtml = `
-        //         <div class="question-item card mb-3 border-grey">
-        //             <div class="card-body">
-        //                 <div class="d-flex justify-content-between align-items-center mb-3">
-        //                     <h6 class="card-title mb-0" style="color: #495057;">New Question</h6>
-        //                     <button type="button" class="btn btn-sm btn-link text-danger" onclick="this.closest('.question-item').remove()">
-        //                         <i class="bi bi-trash"></i>
-        //                     </button>
-        //                 </div>
-        //                 <div class="row g-3">
-        //                     <div class="col-md-6">
-        //                         <label class="form-label" style="color: #6c757d;">Question Title <span class="text-danger">*</span></label>
-        //                         <input type="text" class="form-control question-title" required style="border-color: #dee2e6;">
-        //                     </div>
-        //                     <div class="col-md-6">
-        //                         <label class="form-label" style="color: #6c757d;">Type <span class="text-danger">*</span></label>
-        //                         <select class="form-control question-type" required style="border-color: #dee2e6;" onchange="toggleCheckboxOptions(this)">
-        //                             <option value="SingleLine">Single Line Text</option>
-        //                             <option value="MultiLine">Multi Line Text</option>
-        //                             <option value="Integer">Integer</option>
-        //                             <option value="Checkbox">Checkbox</option>
-        //                             <option value="Radio">Radio</option>
-        //                         </select>
-        //                     </div>
-        //                     <div class="col-12">
-        //                         <label class="form-label" style="color: #6c757d;">Description</label>
-        //                         <input type="text" class="form-control question-description" style="border-color: #dee2e6;">
-        //                     </div>
-        //                     <div class="col-12">
-        //                         <div class="form-check">
-        //                             <input type="checkbox" class="form-check-input question-show-table" style="border-color: #dee2e6;">
-        //                             <label class="form-check-label" style="color: #6c757d;">Show in Table</label>
-        //                         </div>
-        //                     </div>
-
-        //                     <!-- Dynamic checkbox options will be appended here -->
-        //                     <div class="col-12 checkbox-options-container" style="display: none;">
-        //                         <label class="form-label" style="color: #6c757d;">Multiple Choice Options</label>
-        //                         <div class="checkbox-options-list">
-        //                             <div class="input-group mb-2">
-        //                                 <input type="text" class="form-control checkbox-option" placeholder="Option 1" style="border-color: #dee2e6;">
-        //                                 <button type="button" class="btn btn-sm btn-outline-secondary" onclick="removeOption(this)">-</button>
-        //                             </div>
-        //                         </div>
-        //                         <button type="button" class="btn btn-sm btn-primary" onclick="addCheckboxOption(this)">+</button>
-        //                     </div>
-        //                 </div>
-        //             </div>
-        //         </div>
-        //     `;
-        //     $('#questionsList').append(questionHtml);
-        // }
-
-        // Toggle the visibility of the options for Checkbox type
-        function toggleCheckboxOptions(selectElement) {
-            const checkboxOptionsContainer = $(selectElement).closest('.question-item').find('.checkbox-options-container');
-
-            if (selectElement.value === 'Checkbox') {
-                checkboxOptionsContainer.show();
-            } else {
-                checkboxOptionsContainer.hide();
-                // Remove all added options if the type is changed
-                checkboxOptionsContainer.find('.checkbox-options-list').empty();
-            }
-        }
-
-        // Add a new input box for checkbox option
-        function addCheckboxOption(button) {
-            const newOptionHtml = `
-                <div class="input-group mb-2">
-                    <input type="text" class="form-control checkbox-option" placeholder="Option" style="border-color: #dee2e6;">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="removeOption(this)">-</button>
-                </div>
-            `;
-            $(button).prev('.checkbox-options-list').append(newOptionHtml);
-        }
-
-        // Remove a checkbox option input box
-        function removeOption(button) {
-            $(button).closest('.input-group').remove();
-        }
-
-
-
         function saveTemplate() {
-            // Validate required fields
             const requiredFields = [
                 { selector: '#title', message: 'Title is required' },
                 { selector: '#topic', message: 'Topic is required' },
@@ -326,7 +300,6 @@
                 }
             });
 
-            // Validate questions
             const questions = [];
             $('.question-item').each(function() {
                 const questionTitle = $(this).find('.question-title').val().trim();
@@ -350,18 +323,16 @@
                 });
             });
 
-            // If validation fails, stop the function
             if (!isValid) {
                 return;
             }
 
-            // Proceed with saving the template if all fields are valid
             const templateData = {
                 id: $('#templateId').val() || 0,
                 title: $('#title').val().trim(),
                 description: $('#description').val().trim(),
                 topic: $('#topic').val().trim(),
-                imageUrl: $('#imageUrl').val().trim(),
+                imageUrl: $('#imageUrl').val().trim(), // This will now contain the Cloudinary URL
                 isPublic: $('#isPublic').is(':checked'),
                 questions: questions
             };
@@ -374,7 +345,7 @@
                 success: function(response) {
                     if (response.success) {
                         $('#templateModal').modal('hide');
-                        templateTable.setData();
+                        loadTemplates();
                         toastr.success(response.message);
                     } else {
                         toastr.error(response.message);
@@ -397,7 +368,13 @@
                 $('#title').val(template.title);
                 $('#description').val(template.description);
                 $('#topic').val(template.topic);
-                $('#imageUrl').val(template.imageUrl);
+                // $('#imageUrl').val(template.imageUrl);
+                if (template.imageUrl) {
+                    $('#imageUrl').val(template.imageUrl);
+                    $('#imagePreview').attr('src', template.imageUrl).show();
+                } else {
+                    $('#imagePreview').hide();
+                }
                 $('#isPublic').prop('checked', template.isPublic);
 
                 $('#questionsList').empty();
@@ -440,16 +417,11 @@
             });
         }
 
-
-
         function viewTemplateQuestions(id) {
             window.location.href = `/User/ViewTemplateQuestions/${id}`;
         }
 
-
-
-
-       function deleteTemplate(id) {
+        function deleteTemplate(id) {
             Swal.fire({
                 title: 'Are you sure?',
                 text: 'You won\'t be able to revert this!',
@@ -461,9 +433,9 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         url: `/User/DeleteTemplate/${id}`,
-                        type: 'POST',  // Make sure the HTTP method matches the controller's action
+                        type: 'POST',
                         success: function(response) {
-                            templateTable.setData();
+                            loadTemplates();
                             Swal.fire('Deleted!', response.message, 'success');
                         },
                         error: function() {
@@ -472,27 +444,6 @@
                     });
                 }
             });
-        }
-
-
-        function viewForm(id) {
-            window.location.href = `/User/ViewForm/${id}`;
-        }
-
-        function deleteForm(id) {
-            if (confirm('Are you sure you want to delete this form?')) {
-                $.ajax({
-                    url: `/User/DeleteForm/${id}`,
-                    type: 'DELETE',
-                    success: function(response) {
-                        formTable.setData();
-                        toastr.success(response.message);
-                    },
-                    error: function() {
-                        toastr.error('An error occurred while deleting the form');
-                    }
-                });
-            }
         }
     </script>
 }

@@ -116,7 +116,7 @@ namespace FormApp.Controllers
                 TemplateTitle = a.Question.Template.Title,
                 QuestionTitle = a.Question.Title,
                 Answer = a.Value,
-                Username = a.User.Username
+                Username = a.User.Email
             }).ToList();
 
             return Json(response);

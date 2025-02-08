@@ -271,3 +271,5 @@ C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\refint\FormApp.dll
 C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\FormApp.pdb
 C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\FormApp.genruntimeconfig.cache
 C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\ref\FormApp.dll
+C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\CloudinaryDotNet.dll
+C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\Newtonsoft.Json.dll
