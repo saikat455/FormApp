@@ -113,8 +113,7 @@
 </style>
 
 <script>
-
-        function saveAnswers() {
+    function saveAnswers() {
         const form = document.getElementById('answersForm');
         const answers = [];
         var userId = '@Context.Session.GetInt32("UserId")'; // Get UserId from session
@@ -181,5 +180,4 @@
             }
         });
     }
-
 </script>

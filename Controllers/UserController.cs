@@ -118,6 +118,7 @@ namespace FormApp.Controllers
                 ImageUrl = t.ImageUrl,
                 IsPublic = t.IsPublic,
                 CreatedBy = t.User?.Username ?? "Unknown", // Add username for admin view
+                CanEdit = isAdmin || t.UserId == userId,
                 Questions = t.Questions.Select(q => new QuestionDto
                 {
                     Id = q.Id,
@@ -157,6 +158,7 @@ namespace FormApp.Controllers
                 ImageUrl = template.ImageUrl,
                 IsPublic = template.IsPublic,
                 CreatedBy = template.User?.Username ?? "Unknown",
+                CanEdit = isAdmin || template.UserId == userId, // Only admin or creator can edit
                 Questions = template.Questions.Select(q => new QuestionDto
                 {
                     Id = q.Id,
@@ -244,7 +246,7 @@ namespace FormApp.Controllers
             }
 
             var template = _userRepository.GetTemplateById(id);
-            if (template == null || (!isAdmin && template.UserId != userId))
+            if (template == null || (!isAdmin && template.UserId != userId && !template.IsPublic))
             {
                 return NotFound();
             }

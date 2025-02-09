@@ -11,6 +11,7 @@ namespace FormApp.DTO
         public string Topic { get; set; }
         public string ImageUrl { get; set; }
         public bool IsPublic { get; set; }
+        public bool CanEdit { get; set; }
         public string CreatedBy { get; set; }
         public List<QuestionDto> Questions { get; set; }
     }

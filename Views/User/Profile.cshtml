@@ -185,53 +185,65 @@
                         return;
                     }
 
-                            response.forEach(template => {
-            const cardHtml = `
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        ${template.imageUrl ? `
-                            <div class="card-img-top-wrapper" style="width: 100%; overflow: hidden;">
-                                <img src="${template.imageUrl}"
-                                     class="card-img-top"
-                                     alt="${template.title}"
-                                     style="width: 100%; height: auto; object-fit: contain;">
+                    response.forEach(template => {
+                        const cardHtml = `
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    ${template.imageUrl ? `
+                                        <div class="card-img-top-wrapper" style="width: 100%; overflow: hidden;">
+                                            <img src="${template.imageUrl}"
+                                                 class="card-img-top"
+                                                 alt="${template.title}"
+                                                 style="width: 100%; height: auto; object-fit: contain;">
+                                        </div>
+                                    ` : `
+                                        <div class="card-img-top-wrapper bg-light d-flex align-items-center justify-content-center"
+                                             style="height: 250px;">
+                                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                        </div>
+                                    `}
+                                    <div class="card-body">
+                                        <h5 class="card-title">${template.title}</h5>
+                                        <p class="card-text">${template.description}</p>
+                                        <p class="card-text"><small class="text-muted">Topic: ${template.topic}</small></p>
+                                        <p class="card-text"><small class="text-muted">Public: ${template.isPublic ? 'Yes' : 'No'}</small></p>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-info btn-sm" onclick="viewTemplateQuestions(${template.id})">
+                                                View Questions
+                                            </button>
+                                            ${template.canEdit ? `
+                                                <button class="btn btn-warning btn-sm" onclick="editTemplate(${template.id})">
+                                                    <i class="bi bi-pen"></i>
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${template.id})">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        ` : `
-                            <div class="card-img-top-wrapper bg-light d-flex align-items-center justify-content-center"
-                                 style="height: 250px;">
-                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-                            </div>
-                        `}
-                        <div class="card-body">
-                            <h5 class="card-title">${template.title}</h5>
-                            <p class="card-text">${template.description}</p>
-                            <p class="card-text"><small class="text-muted">Topic: ${template.topic}</small></p>
-                            <p class="card-text"><small class="text-muted">Public: ${template.isPublic ? 'Yes' : 'No'}</small></p>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-info btn-sm" onclick="viewTemplateQuestions(${template.id})">
-                                    View Questions
-                                </button>
-                                <button class="btn btn-warning btn-sm" onclick="editTemplate(${template.id})">
-                                    <i class="bi bi-pen"></i>
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${template.id})">
-                                    <i class="bi bi-trash3"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            templateGrid.append(cardHtml);
-        });
-
-
-
-
+                        `;
+                        templateGrid.append(cardHtml);
+                    });
                 },
                 error: function() {
                     toastr.error('An error occurred while loading templates.');
                 }
+            });
+            formTable = new Tabulator("#formTable", {
+                ajaxURL: "/Admin/GetFormAnswers",
+                ajaxResponse: function(url, params, response) {
+                    console.log("Tabulator received data:", response);
+                    return response;  // return the data to be displayed in the table
+                },
+                layout: "fitColumns",
+                columns: [
+                    { title: "Template Title", field: "templateTitle", headerFilter: "input", sorter: "string" },
+                    { title: "User", field: "username", headerFilter: "input", sorter: "string" },
+                    { title: "Question Title", field: "questionTitle", headerFilter: "input", sorter: "string" },
+                    { title: "Answer", field: "answer", headerFilter: "input", sorter: "string" }
+                ]
             });
         }
 

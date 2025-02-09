@@ -39,7 +39,7 @@ namespace FormApp.Repositories
         {
             return _context.Templates
                 .Include(t => t.Questions)
-                .Where(t => t.UserId == userId)
+                .Where(t => t.UserId == userId || t.IsPublic)
                 .ToList();
         }
 
