@@ -1,4 +1,5 @@
 ﻿using FormApp.Data;
+using FormApp.DTO;
 using FormApp.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -72,5 +73,54 @@ namespace FormApp.Repositories
                 .ToList();
         }
 
+        public async Task<(bool wasAdded, int totalLikes)> ToggleLike(int templateId, int userId)
+        {
+            try
+            {
+                // Check if template exists
+                var template = await _context.Templates.FindAsync(templateId);
+                if (template == null)
+                {
+                    throw new Exception("Template not found");
+                }
+
+                var existingLike = await _context.Likes
+                    .FirstOrDefaultAsync(l => l.TemplateId == templateId && l.UserId == userId);
+
+                if (existingLike == null)
+                {
+                    // Add new like
+                    var like = new Like
+                    {
+                        UserId = userId,
+                        TemplateId = templateId
+                    };
+                    _context.Likes.Add(like);
+                    await _context.SaveChangesAsync();
+                    return (true, await GetLikeCount(templateId));
+                }
+                else
+                {
+                    // Remove existing like
+                    _context.Likes.Remove(existingLike);
+                    await _context.SaveChangesAsync();
+                    return (false, await GetLikeCount(templateId));
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error toggling like: {ex.Message}");
+            }
+        }
+
+        public async Task<int> GetLikeCount(int templateId)
+        {
+            return await _context.Likes.CountAsync(l => l.TemplateId == templateId);
+        }
+
+        public async Task<bool> HasUserLiked(int templateId, int userId)
+        {
+            return await _context.Likes.AnyAsync(l => l.TemplateId == templateId && l.UserId == userId);
+        }
     }
 }

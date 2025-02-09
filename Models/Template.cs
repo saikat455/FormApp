@@ -11,6 +11,7 @@
         public int UserId { get; set; }
         public User User { get; set; }
         public List<Question> Questions { get; set; } = new();
-        public List<Form> Forms { get; set; } = new();
+        public List<Comment> Comments { get; set; } = new();
+        public List<Like> Likes { get; set; } = new();
     }
 }

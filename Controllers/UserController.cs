@@ -218,21 +218,7 @@ namespace FormApp.Controllers
         }
 
 
-        [HttpPost]
-        public JsonResult DeleteForm(int id)
-        {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var form = _userRepository.GetFormById(id);
-            if (form?.UserId != userId)
-            {
-                return Json(new { success = false, message = "Form not found" });
-            }
-
-            _userRepository.DeleteForm(id);
-            return Json(new { success = true, message = "Form deleted successfully" });
-        }
-
-        
+       
 
         [HttpGet]
         public IActionResult ViewTemplateQuestions(int id)
@@ -249,6 +235,14 @@ namespace FormApp.Controllers
             if (template == null || (!isAdmin && template.UserId != userId && !template.IsPublic))
             {
                 return NotFound();
+            }
+
+            // Filter questions for non-admin and non-creator users
+            if (!isAdmin && template.UserId != userId)
+            {
+                template.Questions = template.Questions
+                    .Where(q => q.ShowInTable) // Only include questions with ShowInTable = true
+                    .ToList();
             }
 
             return View(template);
@@ -272,6 +266,50 @@ namespace FormApp.Controllers
             {
                 return Json(new { success = false, message = "Failed to upload image" });
             }
+        }
+
+        [HttpPost]
+        public JsonResult ToggleLike(int templateId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return Json(new { success = false, message = "Not authenticated" });
+            }
+
+            try
+            {
+                var result = _userRepository.ToggleLike(templateId, userId.Value);
+                return Json(new
+                {
+                    success = true,
+                    isLiked = result.isLiked,
+                    likeCount = result.likeCount,
+                    message = result.isLiked ? "Template liked" : "Template unliked"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error toggling like" });
+            }
+        }
+
+        [HttpGet]
+        public JsonResult GetTemplateLikeStatus(int templateId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return Json(new { success = false, message = "Not authenticated" });
+            }
+
+            var result = _userRepository.GetTemplateLikeStatus(templateId, userId.Value);
+            return Json(new
+            {
+                success = true,
+                isLiked = result.isLiked,
+                likeCount = result.likeCount
+            });
         }
 
     }

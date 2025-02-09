@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = Model.Title;
+    var userId = Context.Session.GetInt32("UserId");
+    var isAdmin = Context.Session.GetString("IsAdmin") == "true";
+    var isCreator = Model.UserId == userId;
 }
 
 <div class="container mt-4">
@@ -23,49 +26,56 @@
             <form id="answersForm">
                 @foreach (var question in Model.Questions)
                 {
-                    <div class="card mb-4 border-0 shadow-sm question-card">
-                        <div class="card-body">
-                            <h5 class="card-title mb-3">@question.Title <span class="text-danger">*</span></h5>
+                    <!-- Only show questions if the user is admin, creator, or ShowInTable is true -->
+                    @if (isAdmin || isCreator || question.ShowInTable)
+                    {
+                        <div class="card mb-4 border-0 shadow-sm question-card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">@question.Title <span class="text-danger">*</span></h5>
 
-                            @if (!string.IsNullOrEmpty(question.Description))
-                            {
-                                <p class="text-muted mb-4">@question.Description</p>
-                            }
+                                @if (!string.IsNullOrEmpty(question.Description))
+                                {
+                                    <p class="text-muted mb-4">@question.Description</p>
+                                }
 
-                            @switch (question.Type)
-                            {
-                                case "SingleLine":
-                                    <input type="text" class="form-control" name="answer_@question.Id" placeholder="Your answer">
-                                    break;
+                                @switch (question.Type)
+                                {
+                                    case "SingleLine":
+                                        <input type="text" class="form-control" name="answer_@question.Id" placeholder="Your answer">
+                                        break;
 
-                                case "MultiLine":
-                                    <textarea class="form-control" name="answer_@question.Id" rows="3" placeholder="Your answer"></textarea>
-                                    break;
+                                    case "MultiLine":
+                                        <textarea class="form-control" name="answer_@question.Id" rows="3" placeholder="Your answer"></textarea>
+                                        break;
 
-                                case "Integer":
-                                    <input type="number" class="form-control" name="answer_@question.Id" placeholder="Your answer">
-                                    break;
+                                    case "Integer":
+                                        <input type="number" class="form-control" name="answer_@question.Id" placeholder="Your answer">
+                                        break;
 
-                                case "Checkbox":
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="answer_@question.Id" id="question_@question.Id">
-                                        <label class="form-check-label" for="question_@question.Id">Yes</label>
-                                    </div>
-                                    break;
+                                    case "Radio":
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="answer_@question.Id" id="yes_@question.Id" value="Yes">
+                                            <label class="form-check-label" for="yes_@question.Id">Yes</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="answer_@question.Id" id="no_@question.Id" value="No">
+                                            <label class="form-check-label" for="no_@question.Id">No</label>
+                                        </div>
+                                        break;
 
-                                case "Radio":
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="answer_@question.Id" id="yes_@question.Id" value="Yes">
-                                        <label class="form-check-label" for="yes_@question.Id">Yes</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="answer_@question.Id" id="no_@question.Id" value="No">
-                                        <label class="form-check-label" for="no_@question.Id">No</label>
-                                    </div>
-                                    break;
-                            }
+                                    case "MultipleChoice":
+                                        foreach (var option in question.Options)
+                                        {
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="answer_@question.Id" id="option_@question.Id" value="@option">
+                                                <label class="form-check-label" for="option_@question.Id">@option</label>
+                                            </div>
+                                        }
+                                        break;
+                                }
+                            </div>
                         </div>
-                    </div>
+                    }
                 }
             </form>
 
@@ -127,10 +137,22 @@
                     Value: input.value.toString(),
                     UserId: parseInt(userId)
                 });
-            } else if (input.type !== 'radio') {
+            } else if (input.type === 'checkbox' && input.checked) {
+                // Handle multiple-choice questions
+                const existingAnswer = answers.find(a => a.QuestionId === parseInt(questionId));
+                if (existingAnswer) {
+                    existingAnswer.Value += `, ${input.value}`; // Append selected option
+                } else {
+                    answers.push({
+                        QuestionId: parseInt(questionId),
+                        Value: input.value.toString(),
+                        UserId: parseInt(userId)
+                    });
+                }
+            } else if (input.type !== 'radio' && input.type !== 'checkbox' && input.value) {
                 answers.push({
                     QuestionId: parseInt(questionId),
-                    Value: input.type === 'checkbox' ? input.checked.toString() : input.value.toString(),
+                    Value: input.value.toString(),
                     UserId: parseInt(userId)
                 });
             }

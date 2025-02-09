@@ -10,12 +10,13 @@ namespace FormApp.Repositories
         void SaveChanges();
         List<Template> GetTemplatesByUserId(int userId);
         Template GetTemplateById(int id);
-        Form GetFormById(int id);
+        
         void AddTemplate(Template template);
         void UpdateTemplate(Template template);
         void DeleteTemplate(int id);
-        void DeleteForm(int id);
         List<Template> GetAllTemplates();
+        (bool isLiked, int likeCount) GetTemplateLikeStatus(int templateId, int userId);
+        (bool isLiked, int likeCount) ToggleLike(int templateId, int userId);
 
     }
 }

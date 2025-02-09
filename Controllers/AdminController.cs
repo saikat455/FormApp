@@ -122,5 +122,42 @@ namespace FormApp.Controllers
             return Json(response);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ToggleLike([FromBody] ToggleLikeRequest request)
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (userId == null)
+                {
+                    return Json(new { success = false, message = "User not logged in" });
+                }
+
+                var result = await _adminRepository.ToggleLike(request.TemplateId, userId.Value);
+                return Json(new
+                {
+                    success = true,
+                    message = result.wasAdded ? "Like added" : "Like removed",
+                    likeCount = result.totalLikes
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error processing like: " + ex.Message });
+            }
+        }
+
+        public class ToggleLikeRequest
+        {
+            public int TemplateId { get; set; }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetLikeCount(int templateId)
+        {
+            var count = await _adminRepository.GetLikeCount(templateId);
+            return Json(new { count = count });
+        }
+
     }
 }

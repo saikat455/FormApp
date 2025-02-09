@@ -9,5 +9,6 @@
         public bool ShowInTable { get; set; }
         public int TemplateId { get; set; }
         public Template Template { get; set; }
+        public List<string> Options { get; set; } = new List<string>();
     }
 }

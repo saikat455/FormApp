@@ -27,10 +27,10 @@
                 </button>
             </div>
 
-            <!-- Template Cards Grid -->
-            <div class="row" id="templateGrid">
-                <!-- Template cards will be dynamically loaded here -->
-            </div>
+
+            <div id="templateContainer" class="d-flex flex-wrap"></div>
+
+
         </div>
 
         <div class="tab-pane fade" id="forms" role="tabpanel">
@@ -132,6 +132,19 @@
     <script>
         $(document).ready(function() {
             loadTemplates();
+            $("<style>")
+            .text(`
+                .like-button:hover .like-icon {
+                    color: #dc3545 !important;
+                }
+                .like-button {
+                    transition: all 0.2s ease;
+                }
+                .like-button:active {
+                    transform: scale(0.95);
+                }
+            `)
+        .appendTo("head");
         });
 
         async function uploadImage(file) {
@@ -171,45 +184,39 @@
             }
         });
 
-
         function loadTemplates() {
             $.ajax({
                 url: "/User/GetTemplates",
                 type: "GET",
                 success: function(response) {
-                    const templateGrid = $('#templateGrid');
-                    templateGrid.empty();
+                        let container = $("#templateContainer");
+                        container.empty();
 
-                    if (response.length === 0) {
-                        templateGrid.html('<p class="text-muted">No templates found.</p>');
-                        return;
-                    }
+                        if (!response || response.length === 0) {
+                            toastr.info("No templates found.");
+                            return;
+                        }
 
-                    response.forEach(template => {
-                        const cardHtml = `
-                            <div class="col-md-4 mb-4">
-                                <div class="card h-100">
-                                    ${template.imageUrl ? `
-                                        <div class="card-img-top-wrapper" style="width: 100%; overflow: hidden;">
-                                            <img src="${template.imageUrl}"
-                                                 class="card-img-top"
-                                                 alt="${template.title}"
-                                                 style="width: 100%; height: auto; object-fit: contain;">
+                        response.forEach(template => {
+                            let card = `
+                                <div class="card shadow-sm m-2" style="width: 18rem;">
+                                    <div class="position-relative">
+                                        <img src="${template.imageUrl || 'placeholder.jpg'}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                        <div class="position-absolute top-0 end-0 p-2 d-flex align-items-center">
+                                            <button class="btn btn-light btn-sm me-2 like-button" data-template-id="${template.id}">
+                                                <i class="bi bi-heart-fill like-icon"></i>
+                                                <span class="like-count">${template.likes ? template.likes.length : 0}</span>
+                                            </button>
                                         </div>
-                                    ` : `
-                                        <div class="card-img-top-wrapper bg-light d-flex align-items-center justify-content-center"
-                                             style="height: 250px;">
-                                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-                                        </div>
-                                    `}
+                                    </div>
                                     <div class="card-body">
                                         <h5 class="card-title">${template.title}</h5>
                                         <p class="card-text">${template.description}</p>
-                                        <p class="card-text"><small class="text-muted">Topic: ${template.topic}</small></p>
-                                        <p class="card-text"><small class="text-muted">Public: ${template.isPublic ? 'Yes' : 'No'}</small></p>
+                                        <p class="text-muted"><strong>Topic:</strong> ${template.topic}</p>
+                                        <p class="text-muted"><strong>Public:</strong> ${template.isPublic ? 'Yes' : 'No'}</p>
                                         <div class="d-flex gap-2">
                                             <button class="btn btn-info btn-sm" onclick="viewTemplateQuestions(${template.id})">
-                                                View Questions
+                                                View question
                                             </button>
                                             ${template.canEdit ? `
                                                 <button class="btn btn-warning btn-sm" onclick="editTemplate(${template.id})">
@@ -222,15 +229,17 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
-                        templateGrid.append(cardHtml);
-                    });
-                },
+                            `;
+                            container.append(card);
+                            initializeLikeButton(template.id);
+                        });
+                    },
                 error: function() {
-                    toastr.error('An error occurred while loading templates.');
+                   toastr.error('An error occurred while loading templates.');
                 }
             });
+
+
             formTable = new Tabulator("#formTable", {
                 ajaxURL: "/Admin/GetFormAnswers",
                 ajaxResponse: function(url, params, response) {
@@ -246,6 +255,51 @@
                 ]
             });
         }
+
+        function initializeLikeButton(templateId) {
+            // Get initial like status
+            $.get(`/User/GetTemplateLikeStatus?templateId=${templateId}`, function(response) {
+                if (response.success) {
+                    const button = $(`.like-button[data-template-id="${templateId}"]`);
+                    const icon = button.find('.like-icon');
+                    const count = button.find('.like-count');
+
+                    count.text(response.likeCount);
+                    if (response.isLiked) {
+                        icon.addClass('text-danger');
+                    }
+                }
+            });
+
+            // Add click handler
+            $(`.like-button[data-template-id="${templateId}"]`).click(function() {
+                const button = $(this);
+                const icon = button.find('.like-icon');
+                const count = button.find('.like-count');
+
+                $.ajax({
+                    url: '/User/ToggleLike',
+                    type: 'POST',
+                    data: { templateId: templateId },
+                    success: function(response) {
+                        if (response.success) {
+                            if (response.isLiked) {
+                                icon.addClass('text-danger');
+                            } else {
+                                icon.removeClass('text-danger');
+                            }
+                            count.text(response.likeCount);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Error toggling like');
+                    }
+                });
+            });
+        }
+
 
         function showCreateTemplateModal() {
             $('#templateId').val('');
@@ -272,11 +326,12 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" style="color: #6c757d;">Type <span class="text-danger">*</span></label>
-                                <select class="form-control question-type" required style="border-color: #dee2e6;">
+                                <select class="form-control question-type" required style="border-color: #dee2e6;" onchange="handleQuestionTypeChange(this)">
                                     <option value="SingleLine">Single Line Text</option>
                                     <option value="MultiLine">Multi Line Text</option>
                                     <option value="Integer">Integer</option>
                                     <option value="Radio">Radio</option>
+                                    <option value="MultipleChoice">Multiple Choice</option>
                                 </select>
                             </div>
                             <div class="col-12">
@@ -289,11 +344,43 @@
                                     <label class="form-check-label" style="color: #6c757d;">Show in Table</label>
                                 </div>
                             </div>
+                            <!-- Multiple Choice Options Section -->
+                            <div class="col-12 multiple-choice-options" style="display: none;">
+                                <label class="form-label" style="color: #6c757d;">Options</label>
+                                <div class="options-list mb-2"></div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addOption(this)">
+                                    <i class="bi bi-plus"></i> Add Option
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
             $('#questionsList').append(questionHtml);
+        }
+
+        function handleQuestionTypeChange(selectElement) {
+            const questionItem = $(selectElement).closest('.question-item');
+            const optionsSection = questionItem.find('.multiple-choice-options');
+
+            if (selectElement.value === 'MultipleChoice') {
+                optionsSection.show();
+            } else {
+                optionsSection.hide();
+            }
+        }
+
+        function addOption(button) {
+            const optionsList = $(button).siblings('.options-list');
+            const optionHtml = `
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control option-input" placeholder="Enter option">
+                    <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            optionsList.append(optionHtml);
         }
 
         function saveTemplate() {
@@ -327,12 +414,25 @@
                     isValid = false;
                 }
 
-                questions.push({
+                const question = {
                     title: questionTitle,
                     description: $(this).find('.question-description').val().trim(),
                     type: questionType,
                     showInTable: $(this).find('.question-show-table').is(':checked')
-                });
+                };
+
+                if (questionType === 'MultipleChoice') {
+                    const options = [];
+                    $(this).find('.option-input').each(function() {
+                        const optionValue = $(this).val().trim();
+                        if (optionValue) {
+                            options.push(optionValue);
+                        }
+                    });
+                    question.options = options;
+                }
+
+                questions.push(question);
             });
 
             if (!isValid) {
@@ -344,7 +444,7 @@
                 title: $('#title').val().trim(),
                 description: $('#description').val().trim(),
                 topic: $('#topic').val().trim(),
-                imageUrl: $('#imageUrl').val().trim(), // This will now contain the Cloudinary URL
+                imageUrl: $('#imageUrl').val().trim(),
                 isPublic: $('#isPublic').is(':checked'),
                 questions: questions
             };

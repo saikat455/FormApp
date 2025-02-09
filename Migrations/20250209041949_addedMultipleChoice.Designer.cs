@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using FormApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FormApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250209041949_addedMultipleChoice")]
+    partial class addedMultipleChoice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,6 +34,9 @@ namespace FormApp.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("FormId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("QuestionId")
                         .HasColumnType("integer");
 
@@ -43,6 +49,8 @@ namespace FormApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FormId");
+
                     b.HasIndex("QuestionId");
 
                     b.HasIndex("UserId");
@@ -50,7 +58,7 @@ namespace FormApp.Migrations
                     b.ToTable("Answers");
                 });
 
-            modelBuilder.Entity("FormApp.Models.Comment", b =>
+            modelBuilder.Entity("FormApp.Models.Form", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -64,10 +72,6 @@ namespace FormApp.Migrations
                     b.Property<int>("TemplateId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
@@ -77,30 +81,7 @@ namespace FormApp.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments");
-                });
-
-            modelBuilder.Entity("FormApp.Models.Like", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("TemplateId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TemplateId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Likes");
+                    b.ToTable("Forms");
                 });
 
             modelBuilder.Entity("FormApp.Models.Question", b =>
@@ -210,6 +191,10 @@ namespace FormApp.Migrations
 
             modelBuilder.Entity("FormApp.Models.Answer", b =>
                 {
+                    b.HasOne("FormApp.Models.Form", null)
+                        .WithMany("Answers")
+                        .HasForeignKey("FormId");
+
                     b.HasOne("FormApp.Models.Question", "Question")
                         .WithMany()
                         .HasForeignKey("QuestionId")
@@ -227,29 +212,10 @@ namespace FormApp.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FormApp.Models.Comment", b =>
+            modelBuilder.Entity("FormApp.Models.Form", b =>
                 {
                     b.HasOne("FormApp.Models.Template", "Template")
-                        .WithMany("Comments")
-                        .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FormApp.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Template");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("FormApp.Models.Like", b =>
-                {
-                    b.HasOne("FormApp.Models.Template", "Template")
-                        .WithMany("Likes")
+                        .WithMany("Forms")
                         .HasForeignKey("TemplateId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -287,11 +253,14 @@ namespace FormApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("FormApp.Models.Form", b =>
+                {
+                    b.Navigation("Answers");
+                });
+
             modelBuilder.Entity("FormApp.Models.Template", b =>
                 {
-                    b.Navigation("Comments");
-
-                    b.Navigation("Likes");
+                    b.Navigation("Forms");
 
                     b.Navigation("Questions");
                 });

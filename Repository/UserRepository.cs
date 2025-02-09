@@ -35,10 +35,19 @@ namespace FormApp.Repositories
             _context.SaveChanges();
         }
 
+        //public List<Template> GetTemplatesByUserId(int userId)
+        //{
+        //    return _context.Templates
+        //        .Include(t => t.Questions)
+        //        .Where(t => t.UserId == userId || t.IsPublic)
+        //        .ToList();
+        //}
+
         public List<Template> GetTemplatesByUserId(int userId)
         {
             return _context.Templates
                 .Include(t => t.Questions)
+                .Include(t => t.Likes)
                 .Where(t => t.UserId == userId || t.IsPublic)
                 .ToList();
         }
@@ -50,12 +59,7 @@ namespace FormApp.Repositories
                 .FirstOrDefault(t => t.Id == id);
         }
 
-        public Form GetFormById(int id)
-        {
-            return _context.Forms
-                .Include(f => f.Answers)
-                .FirstOrDefault(f => f.Id == id);
-        }
+        
 
         public void AddTemplate(Template template)
         {
@@ -82,31 +86,14 @@ namespace FormApp.Repositories
             }
         }
 
-        // UserRepository.cs (completing the methods)
-
         public void DeleteTemplate(int id)
         {
             var template = _context.Templates
                 .Include(t => t.Questions)
-                .Include(t => t.Forms)
-                    .ThenInclude(f => f.Answers)
                 .FirstOrDefault(t => t.Id == id);
 
             if (template != null)
             {
-                // Delete related answers and forms only if there are any
-                if (template.Forms != null && template.Forms.Any())
-                {
-                    foreach (var form in template.Forms)
-                    {
-                        if (form.Answers != null && form.Answers.Any())
-                        {
-                            _context.Answers.RemoveRange(form.Answers);
-                        }
-                    }
-                    _context.Forms.RemoveRange(template.Forms);
-                }
-
                 // Delete related questions if there are any
                 if (template.Questions != null && template.Questions.Any())
                 {
@@ -119,32 +106,47 @@ namespace FormApp.Repositories
                 _context.SaveChanges();
             }
         }
-
-        public void DeleteForm(int id)
-        {
-            var form = _context.Forms
-                .Include(f => f.Answers)
-                .FirstOrDefault(f => f.Id == id);
-
-            if (form != null)
-            {
-                // Delete related answers
-                _context.Answers.RemoveRange(form.Answers);
-
-                // Delete the form
-                _context.Forms.Remove(form);
-
-                _context.SaveChanges();
-            }
-        }
-
         public List<Template> GetAllTemplates()
         {
             return _context.Templates
                 .Include(t => t.Questions)
                 .Include(t => t.User)
+                .Include(t => t.Likes)
                 .ToList();
         }
 
+        public (bool isLiked, int likeCount) ToggleLike(int templateId, int userId)
+        {
+            var existingLike = _context.Likes
+                .FirstOrDefault(l => l.TemplateId == templateId && l.UserId == userId);
+
+            if (existingLike == null)
+            {
+                // Add new like
+                _context.Likes.Add(new Like
+                {
+                    TemplateId = templateId,
+                    UserId = userId
+                });
+                _context.SaveChanges();
+                var likeCount = _context.Likes.Count(l => l.TemplateId == templateId);
+                return (true, likeCount);
+            }
+            else
+            {
+                // Remove existing like
+                _context.Likes.Remove(existingLike);
+                _context.SaveChanges();
+                var likeCount = _context.Likes.Count(l => l.TemplateId == templateId);
+                return (false, likeCount);
+            }
+        }
+
+        public (bool isLiked, int likeCount) GetTemplateLikeStatus(int templateId, int userId)
+        {
+            var isLiked = _context.Likes.Any(l => l.TemplateId == templateId && l.UserId == userId);
+            var likeCount = _context.Likes.Count(l => l.TemplateId == templateId);
+            return (isLiked, likeCount);
+        }
     }
 }

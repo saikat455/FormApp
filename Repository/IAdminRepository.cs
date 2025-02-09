@@ -13,6 +13,8 @@ namespace FormApp.Repositories
         bool ToggleAdminStatus(int userId);
         void SaveAnswer(Answer answer);
         List<Answer> GetAllAnswersWithDetails();
-
+        Task<(bool wasAdded, int totalLikes)> ToggleLike(int templateId, int userId);
+        Task<int> GetLikeCount(int templateId);
+        Task<bool> HasUserLiked(int templateId, int userId);
     }
 }
