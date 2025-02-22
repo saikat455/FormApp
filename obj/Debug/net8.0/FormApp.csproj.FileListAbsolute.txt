@@ -264,7 +264,6 @@ C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\staticwebassets\msbuild.b
 C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.FormApp.props
 C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.FormApp.props
 C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\staticwebassets.pack.json
-C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\FormApp.csproj.Up2Date
 C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\FormApp.dll
 C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\refint\FormApp.dll
@@ -273,3 +272,11 @@ C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\FormApp.genruntimeconfig.
 C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\ref\FormApp.dll
 C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\CloudinaryDotNet.dll
 C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\one\Documents\Github\FormApp\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
+C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\MailKit.dll
+C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\MimeKit.dll
+C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Binder.dll
+C:\Users\one\Documents\Github\FormApp\bin\Debug\net8.0\Microsoft.Extensions.Options.ConfigurationExtensions.dll

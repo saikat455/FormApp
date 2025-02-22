@@ -30,6 +30,12 @@ namespace FormApp.Controllers
         [HttpPost]
         public IActionResult Register([FromBody] User model)
         {
+            // Validate password on server side
+            if (!IsPasswordValid(model.PasswordHash))
+            {
+                return Json(new { success = false, message = "Password must contain at least one number, one uppercase letter, one lowercase letter, and be at least 8 characters long." });
+            }
+
             if (_userRepository.GetByEmail(model.Email) != null)
             {
                 return Json(new { success = false, message = "Email already exists" });
@@ -49,6 +55,18 @@ namespace FormApp.Controllers
 
             return Json(new { success = true, message = "Registration successful!" });
         }
+
+        // Function to validate password
+        private bool IsPasswordValid(string password)
+        {
+            const int minLength = 8;
+            bool hasNumber = password.Any(char.IsDigit);
+            bool hasUpperCase = password.Any(char.IsUpper);
+            bool hasLowerCase = password.Any(char.IsLower);
+
+            return password.Length >= minLength && hasNumber && hasUpperCase && hasLowerCase;
+        }
+
 
         [HttpPost]
         public IActionResult Login([FromBody] LoginViewModel model)
@@ -72,7 +90,6 @@ namespace FormApp.Controllers
 
             return Json(new { success = true, message = "Login successful!", redirectUrl = user.IsAdmin ? "/Admin/Dashboard" : "/User/Profile" });
         }
-
 
         private string HashPassword(string password)
         {
@@ -117,7 +134,7 @@ namespace FormApp.Controllers
                 Topic = t.Topic,
                 ImageUrl = t.ImageUrl,
                 IsPublic = t.IsPublic,
-                CreatedBy = t.User?.Username ?? "Unknown", // Add username for admin view
+                CreatedBy = t.User?.Username ?? "Unknown",
                 CanEdit = isAdmin || t.UserId == userId,
                 Questions = t.Questions.Select(q => new QuestionDto
                 {
@@ -158,7 +175,7 @@ namespace FormApp.Controllers
                 ImageUrl = template.ImageUrl,
                 IsPublic = template.IsPublic,
                 CreatedBy = template.User?.Username ?? "Unknown",
-                CanEdit = isAdmin || template.UserId == userId, // Only admin or creator can edit
+                CanEdit = isAdmin || template.UserId == userId,
                 Questions = template.Questions.Select(q => new QuestionDto
                 {
                     Id = q.Id,
@@ -217,38 +234,6 @@ namespace FormApp.Controllers
             return Json(new { success = true, message = "Template deleted successfully" });
         }
 
-
-       
-
-        [HttpGet]
-        public IActionResult ViewTemplateQuestions(int id)
-        {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var isAdmin = HttpContext.Session.GetString("IsAdmin") == "true";
-
-            if (!userId.HasValue)
-            {
-                return RedirectToAction("Login");
-            }
-
-            var template = _userRepository.GetTemplateById(id);
-            if (template == null || (!isAdmin && template.UserId != userId && !template.IsPublic))
-            {
-                return NotFound();
-            }
-
-            // Filter questions for non-admin and non-creator users
-            if (!isAdmin && template.UserId != userId)
-            {
-                template.Questions = template.Questions
-                    .Where(q => q.ShowInTable) // Only include questions with ShowInTable = true
-                    .ToList();
-            }
-
-            return View(template);
-        }
-
-        // Add this action to your UserController
         [HttpPost]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
@@ -312,6 +297,33 @@ namespace FormApp.Controllers
             });
         }
 
+        [HttpGet]
+        public IActionResult ViewTemplateQuestions(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var isAdmin = HttpContext.Session.GetString("IsAdmin") == "true";
+
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var template = _userRepository.GetTemplateById(id);
+            if (template == null || (!isAdmin && template.UserId != userId && !template.IsPublic))
+            {
+                return NotFound();
+            }
+
+            // Filter questions for non-admin and non-creator users
+            if (!isAdmin && template.UserId != userId)
+            {
+                template.Questions = template.Questions
+                    .Where(q => q.ShowInTable) // Only include questions with ShowInTable = true
+                    .ToList();
+            }
+
+            return View(template);
+        }
     }
 
     public class LoginViewModel

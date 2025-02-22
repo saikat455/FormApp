@@ -1,8 +1,7 @@
 ﻿using FormApp.Data;
 using FormApp.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
+using System.Linq;
 
 namespace FormApp.Repositories
 {
@@ -17,12 +16,16 @@ namespace FormApp.Repositories
 
         public User GetByUsername(string username)
         {
-            return _context.Users.FirstOrDefault(u => u.Username == username);
+            return _context.Users
+                .AsNoTracking()
+                .FirstOrDefault(u => u.Username == username);
         }
 
         public User GetByEmail(string email)
         {
-            return _context.Users.FirstOrDefault(u => u.Email == email);
+            return _context.Users
+                .AsNoTracking()
+                .FirstOrDefault(u => u.Email == email);
         }
 
         public void Add(User user)
@@ -35,20 +38,13 @@ namespace FormApp.Repositories
             _context.SaveChanges();
         }
 
-        //public List<Template> GetTemplatesByUserId(int userId)
-        //{
-        //    return _context.Templates
-        //        .Include(t => t.Questions)
-        //        .Where(t => t.UserId == userId || t.IsPublic)
-        //        .ToList();
-        //}
-
         public List<Template> GetTemplatesByUserId(int userId)
         {
             return _context.Templates
                 .Include(t => t.Questions)
                 .Include(t => t.Likes)
                 .Where(t => t.UserId == userId || t.IsPublic)
+                .AsNoTracking()
                 .ToList();
         }
 
@@ -56,10 +52,9 @@ namespace FormApp.Repositories
         {
             return _context.Templates
                 .Include(t => t.Questions)
+                .AsNoTracking()
                 .FirstOrDefault(t => t.Id == id);
         }
-
-        
 
         public void AddTemplate(Template template)
         {
@@ -94,24 +89,19 @@ namespace FormApp.Repositories
 
             if (template != null)
             {
-                // Delete related questions if there are any
-                if (template.Questions != null && template.Questions.Any())
-                {
-                    _context.Questions.RemoveRange(template.Questions);
-                }
-
-                // Delete the template
+                _context.Questions.RemoveRange(template.Questions);
                 _context.Templates.Remove(template);
-
                 _context.SaveChanges();
             }
         }
+
         public List<Template> GetAllTemplates()
         {
             return _context.Templates
                 .Include(t => t.Questions)
                 .Include(t => t.User)
                 .Include(t => t.Likes)
+                .AsNoTracking()
                 .ToList();
         }
 
@@ -122,7 +112,6 @@ namespace FormApp.Repositories
 
             if (existingLike == null)
             {
-                // Add new like
                 _context.Likes.Add(new Like
                 {
                     TemplateId = templateId,
@@ -134,7 +123,6 @@ namespace FormApp.Repositories
             }
             else
             {
-                // Remove existing like
                 _context.Likes.Remove(existingLike);
                 _context.SaveChanges();
                 var likeCount = _context.Likes.Count(l => l.TemplateId == templateId);
@@ -144,8 +132,10 @@ namespace FormApp.Repositories
 
         public (bool isLiked, int likeCount) GetTemplateLikeStatus(int templateId, int userId)
         {
-            var isLiked = _context.Likes.Any(l => l.TemplateId == templateId && l.UserId == userId);
-            var likeCount = _context.Likes.Count(l => l.TemplateId == templateId);
+            var isLiked = _context.Likes
+                .Any(l => l.TemplateId == templateId && l.UserId == userId);
+            var likeCount = _context.Likes
+                .Count(l => l.TemplateId == templateId);
             return (isLiked, likeCount);
         }
     }

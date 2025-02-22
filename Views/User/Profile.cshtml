@@ -2,8 +2,55 @@
     ViewData["Title"] = "Profile";
 }
 
+<style>
+    .comment-button:hover .comment-icon {
+        color: #007bff !important;
+    }
+
+    .comment-button {
+        transition: all 0.2s ease;
+    }
+
+        .comment-button:active {
+            transform: scale(0.95);
+        }
+
+    .comment-modal .modal-body {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .comment-card {
+        transition: transform 0.2s;
+    }
+
+        .comment-card:hover {
+            transform: translateY(-2px);
+        }
+
+    #commentText {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .comment-button .comment-count {
+        margin-left: 5px;
+        font-size: 0.9em;
+        color: #6c757d;
+    }
+</style>
+
+
 <div class="container mt-4">
     <h2>My Profile</h2>
+
+    <!-- Search Bar -->
+    <div class="input-group mb-4">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search templates, forms, or comments...">
+        <button class="btn btn-primary" onclick="performSearch()">
+            <i class="bi bi-search"></i> Search
+        </button>
+    </div>
 
     <!-- Tab navigation for Templates and Forms -->
     <ul class="nav nav-tabs" id="profileTabs" role="tablist">
@@ -26,15 +73,41 @@
                     <i class="bi bi-plus-circle"></i> Create
                 </button>
             </div>
-
-
             <div id="templateContainer" class="d-flex flex-wrap"></div>
-
-
         </div>
 
         <div class="tab-pane fade" id="forms" role="tabpanel">
             <div id="formTable"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Comment Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title">
+                    <i class="bi bi-chat-dots me-2"></i>Comments
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="commentsList" class="mb-4"></div>
+                <div class="comment-form">
+                    <div class="form-floating mb-3">
+                        <textarea class="form-control"
+                                  id="commentText"
+                                  placeholder="Write your comment..."
+                                  style="height: 100px"></textarea>
+                        <label for="commentText">Write your comment...</label>
+                    </div>
+                    <button class="btn btn-primary w-100" onclick="saveComment()">
+                        <i class="bi bi-send me-2"></i>Post Comment
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -184,20 +257,116 @@
             }
         });
 
+        function showCommentModal(templateId) {
+            const modal = $('#commentModal');
+            const commentsList = $('#commentsList');
+
+            // Show modal with loading state
+            modal.modal('show');
+            commentsList.html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Loading comments...</p></div>');
+
+            // Store template ID and load comments
+            modal.data('template-id', templateId);
+            loadComments(templateId);
+        }
+
+        // Update the comment button initialization
+        function initializeCommentButton(templateId) {
+            $(`.comment-button[data-template-id="${templateId}"]`).click(function() {
+                showCommentModal(templateId);
+            });
+        }
+
+        function loadComments(templateId) {
+            $.get(`/Admin/GetComments?templateId=${templateId}`, function(response) {
+                const commentsList = $('#commentsList');
+                commentsList.empty();
+
+                if (!response || response.length === 0) {
+                    commentsList.append('<p class="text-muted text-center">No comments yet.</p>');
+                    return;
+                }
+
+                response.forEach(comment => {
+                    // Convert UTC time to local time
+                    const formattedDate = new Date(comment.createdAt + 'Z').toLocaleString();
+
+                    const commentHtml = `
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-subtitle mb-2 text-primary">
+                                        <i class="bi bi-person-circle me-2"></i>${comment.userEmail}
+                                    </h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>${formattedDate}
+                                    </small>
+                                </div>
+                                <p class="card-text">${comment.text}</p>
+                            </div>
+                        </div>
+                    `;
+                    commentsList.append(commentHtml);
+                });
+            }).fail(function() {
+                toastr.error('Failed to load comments');
+            });
+        }
+
+
+        function saveComment() {
+            const templateId = $('#commentModal').data('template-id');
+            const commentText = $('#commentText').val().trim();
+
+            if (!commentText) {
+                toastr.error('Comment text is required');
+                return;
+            }
+
+            $.ajax({
+                url: '/Admin/AddComment',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ TemplateId: templateId, Text: commentText }),
+                success: function(response) {
+                    if (response.success) {
+                        $('#commentText').val('');
+                        loadComments(templateId);
+                        toastr.success(response.message);
+
+                        // Update the comment count
+                        const commentButton = $(`.comment-button[data-template-id="${templateId}"]`);
+                        const commentCountSpan = commentButton.find('.comment-count');
+                        const currentCount = parseInt(commentCountSpan.text()) || 0;
+                        commentCountSpan.text(currentCount + 1);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function() {
+                    toastr.error('An error occurred while saving the comment');
+                }
+            });
+        }
+
         function loadTemplates() {
             $.ajax({
                 url: "/User/GetTemplates",
                 type: "GET",
                 success: function(response) {
-                        let container = $("#templateContainer");
-                        container.empty();
+                    let container = $("#templateContainer");
+                    container.empty();
 
-                        if (!response || response.length === 0) {
-                            toastr.info("No templates found.");
-                            return;
-                        }
+                    if (!response || response.length === 0) {
+                        toastr.info("No templates found.");
+                        return;
+                    }
 
-                        response.forEach(template => {
+                    response.forEach(template => {
+                        // Fetch the comment count for this template
+                        $.get(`/Admin/GetComments?templateId=${template.id}`, function(comments) {
+                            const commentCount = comments ? comments.length : 0;
+
                             let card = `
                                 <div class="card shadow-sm m-2" style="width: 18rem;">
                                     <div class="position-relative">
@@ -206,6 +375,10 @@
                                             <button class="btn btn-light btn-sm me-2 like-button" data-template-id="${template.id}">
                                                 <i class="bi bi-heart-fill like-icon"></i>
                                                 <span class="like-count">${template.likes ? template.likes.length : 0}</span>
+                                            </button>
+                                            <button class="btn btn-light btn-sm comment-button" data-template-id="${template.id}">
+                                                <i class="bi bi-chat"></i>
+                                                <span class="comment-count">${commentCount}</span>
                                             </button>
                                         </div>
                                     </div>
@@ -232,14 +405,16 @@
                             `;
                             container.append(card);
                             initializeLikeButton(template.id);
+                            initializeCommentButton(template.id);
+                        }).fail(function() {
+                            toastr.error('Failed to load comment count for template ' + template.id);
                         });
-                    },
+                    });
+                },
                 error: function() {
-                   toastr.error('An error occurred while loading templates.');
+                    toastr.error('An error occurred while loading templates.');
                 }
             });
-
-
             formTable = new Tabulator("#formTable", {
                 ajaxURL: "/Admin/GetFormAnswers",
                 ajaxResponse: function(url, params, response) {
@@ -469,7 +644,7 @@
             });
         }
 
-        function editTemplate(id) {
+                function editTemplate(id) {
             $.get(`/User/GetTemplate/${id}`, function(template) {
                 if (template.success === false) {
                     toastr.error(template.message);
@@ -480,7 +655,7 @@
                 $('#title').val(template.title);
                 $('#description').val(template.description);
                 $('#topic').val(template.topic);
-                // $('#imageUrl').val(template.imageUrl);
+
                 if (template.imageUrl) {
                     $('#imageUrl').val(template.imageUrl);
                     $('#imagePreview').attr('src', template.imageUrl).show();
@@ -492,30 +667,56 @@
                 $('#questionsList').empty();
                 template.questions.forEach(function(question) {
                     const questionHtml = `
-                        <div class="question-item border p-3 mb-2 position-relative">
-                            <button type="button" class="btn position-absolute top-0 end-0 m-2" onclick="this.parentElement.remove()">
-                                <i class="bi bi-trash3"></i>
-                            </button>
-                            <div class="mb-2">
-                                <label class="form-label">Question Title</label>
-                                <input type="text" class="form-control question-title" value="${question.title}" required>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">Description</label>
-                                <input type="text" class="form-control question-description" value="${question.description}">
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">Type</label>
-                                <select class="form-control question-type" required>
-                                    <option value="SingleLine" ${question.type === 'SingleLine' ? 'selected' : ''}>Single Line Text</option>
-                                    <option value="MultiLine" ${question.type === 'MultiLine' ? 'selected' : ''}>Multi Line Text</option>
-                                    <option value="Integer" ${question.type === 'Integer' ? 'selected' : ''}>Integer</option>
-                                    <option value="Radio" ${question.type === 'Radio' ? 'selected' : ''}>Radio</option>
-                                </select>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input type="checkbox" class="form-check-input question-show-table" ${question.showInTable ? 'checked' : ''}>
-                                <label class="form-check-label">Show in Table</label>
+                        <div class="question-item card mb-3 border-grey">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="card-title mb-0" style="color: #495057;">Question</h6>
+                                    <button type="button" class="btn btn-sm btn-link text-danger" onclick="this.closest('.question-item').remove()">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label" style="color: #6c757d;">Question Title <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control question-title" value="${question.title}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" style="color: #6c757d;">Type <span class="text-danger">*</span></label>
+                                        <select class="form-control question-type" required onchange="handleQuestionTypeChange(this)">
+                                            <option value="SingleLine" ${question.type === 'SingleLine' ? 'selected' : ''}>Single Line Text</option>
+                                            <option value="MultiLine" ${question.type === 'MultiLine' ? 'selected' : ''}>Multi Line Text</option>
+                                            <option value="Integer" ${question.type === 'Integer' ? 'selected' : ''}>Integer</option>
+                                            <option value="Radio" ${question.type === 'Radio' ? 'selected' : ''}>Radio</option>
+                                            <option value="MultipleChoice" ${question.type === 'MultipleChoice' ? 'selected' : ''}>Multiple Choice</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label" style="color: #6c757d;">Description</label>
+                                        <input type="text" class="form-control question-description" value="${question.description}">
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input question-show-table" ${question.showInTable ? 'checked' : ''}>
+                                            <label class="form-check-label" style="color: #6c757d;">Show in Table</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 multiple-choice-options" style="display: ${question.type === 'MultipleChoice' ? 'block' : 'none'};">
+                                        <label class="form-label" style="color: #6c757d;">Options</label>
+                                        <div class="options-list mb-2">
+                                            ${question.options ? question.options.map(option => `
+                                                <div class="input-group mb-2">
+                                                    <input type="text" class="form-control option-input" value="${option}" placeholder="Enter option">
+                                                    <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            `).join('') : ''}
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addOption(this)">
+                                            <i class="bi bi-plus"></i> Add Option
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -555,6 +756,58 @@
                         }
                     });
                 }
+            });
+        }
+
+                function performSearch() {
+            const searchQuery = $('#searchInput').val().trim();
+            if (!searchQuery) {
+                toastr.warning('Please enter a search term');
+                return;
+            }
+
+            // Show loading indicator
+            $('#templateContainer').html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Searching...</p></div>');
+
+            // Perform search
+            $.ajax({
+                url: '/Admin/Search',
+                type: 'GET',
+                data: { query: searchQuery },
+                success: function(response) {
+                    if (response.success) {
+                        displaySearchResults(response.results);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function() {
+                    toastr.error('An error occurred while searching');
+                }
+            });
+        }
+
+        function displaySearchResults(results) {
+            const container = $('#templateContainer');
+            container.empty();
+
+            if (!results || results.length === 0) {
+                container.html('<p class="text-muted text-center">No results found.</p>');
+                return;
+            }
+
+            results.forEach(result => {
+                const resultHtml = `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">${result.title}</h5>
+                            <p class="card-text">${result.description}</p>
+                            <p class="text-muted"><strong>Type:</strong> ${result.type}</p>
+                            ${result.type === 'Comment' ? `<p class="text-muted"><strong>By:</strong> ${result.userEmail}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+                container.append(resultHtml);
             });
         }
     </script>

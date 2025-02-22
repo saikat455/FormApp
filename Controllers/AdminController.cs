@@ -1,8 +1,7 @@
-﻿using FormApp.Models;
+﻿using FormApp.DTO;
+using FormApp.Models;
 using FormApp.Repositories;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace FormApp.Controllers
 {
@@ -17,76 +16,59 @@ namespace FormApp.Controllers
 
         public IActionResult Dashboard()
         {
-            var isAdmin = HttpContext.Session.GetInt32("UserId") != null && HttpContext.Session.GetString("IsAdmin") == "true";
+            var isAdmin = HttpContext.Session.GetInt32("UserId") != null &&
+                         HttpContext.Session.GetString("IsAdmin") == "true";
             if (!isAdmin)
             {
                 return RedirectToAction("Login", "User");
             }
-
             return View();
         }
 
         [HttpGet]
-        public JsonResult GetUsers()
+        public async Task<JsonResult> GetUsers()
         {
-            var users = _adminRepository.GetAllUsers();
+            var users = await _adminRepository.GetAllUsersAsync();
             return Json(users);
         }
 
         [HttpPost]
-        public JsonResult ToggleBlockUser(int userId)
+        public async Task<JsonResult> ToggleBlockUser(int userId)
         {
-            var user = _adminRepository.GetUserById(userId);
-            if (user != null)
+            var success = await _adminRepository.ToggleUserBlockStatusAsync(userId);
+            return Json(new
             {
-                user.IsBlocked = !user.IsBlocked;
-                _adminRepository.UpdateUser(user);
-                return Json(new { success = true, message = "User status updated" });
-            }
-            return Json(new { success = false, message = "User not found" });
+                success,
+                message = success ? "User status updated" : "User not found"
+            });
         }
 
         [HttpPost]
-        public JsonResult DeleteUser(int userId)
+        public async Task<JsonResult> DeleteUser(int userId)
         {
-            _adminRepository.DeleteUser(userId);
-            return Json(new { success = true, message = "User deleted successfully" });
-        }
-
-        [HttpPost]
-        public IActionResult ToggleAdminStatus(int userId)
-        {
-            var user = _adminRepository.GetUserById(userId);
-            if (user != null)
+            var success = await _adminRepository.DeleteUserAsync(userId);
+            return Json(new
             {
-                user.IsAdmin = !user.IsAdmin; // Toggle IsAdmin
-                _adminRepository.SaveChanges(); // Save changes to the database
-                return Json(new { success = true, message = "Status updated" });
-            }
-            return Json(new { success = false, message = "User not found" });
+                success,
+                message = success ? "User deleted successfully" : "User not found"
+            });
         }
 
-        //[HttpPost]
-        //public IActionResult SaveAnswers([FromBody] List<Answer> answers)
-        //{
-        //    if (answers == null || !answers.Any())
-        //    {
-        //        return Json(new { success = false, message = "No answers provided" });
-        //    }
-
-        //    foreach (var answer in answers)
-        //    {
-        //        _adminRepository.SaveAnswer(answer);
-        //    }
-
-        //    return Json(new { success = true, message = "Answers saved successfully" });
-        //}
+        [HttpPost]
+        public async Task<IActionResult> ToggleAdminStatus(int userId)
+        {
+            var success = await _adminRepository.ToggleAdminStatusAsync(userId);
+            return Json(new
+            {
+                success,
+                message = success ? "Status updated" : "User not found"
+            });
+        }
 
         [HttpPost]
-        public IActionResult SaveAnswers([FromBody] List<Answer> answers)
+        public async Task<IActionResult> SaveAnswers([FromBody] List<Answer> answers)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
-
             if (userId == null)
             {
                 return Json(new { success = false, message = "User not logged in" });
@@ -97,43 +79,34 @@ namespace FormApp.Controllers
                 return Json(new { success = false, message = "No answers provided" });
             }
 
-            foreach (var answer in answers)
+            // Bulk save answers
+            var success = await _adminRepository.SaveAnswersBulkAsync(answers, userId.Value);
+            return Json(new
             {
-                answer.UserId = userId.Value; // Assigning UserId
-                _adminRepository.SaveAnswer(answer);
-            }
-
-            return Json(new { success = true, message = "Answers saved successfully" });
+                success,
+                message = success ? "Answers saved successfully" : "Failed to save answers"
+            });
         }
 
         [HttpGet]
-        public IActionResult GetFormAnswers()
+        public async Task<IActionResult> GetFormAnswers()
         {
-            var answers = _adminRepository.GetAllAnswersWithDetails();
-
-            var response = answers.Select(a => new
-            {
-                TemplateTitle = a.Question.Template.Title,
-                QuestionTitle = a.Question.Title,
-                Answer = a.Value,
-                Username = a.User.Email
-            }).ToList();
-
-            return Json(response);
+            var answers = await _adminRepository.GetAnswersWithDetailsAsync();
+            return Json(answers);
         }
 
         [HttpPost]
         public async Task<IActionResult> ToggleLike([FromBody] ToggleLikeRequest request)
         {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return Json(new { success = false, message = "User not logged in" });
+            }
+
             try
             {
-                var userId = HttpContext.Session.GetInt32("UserId");
-                if (userId == null)
-                {
-                    return Json(new { success = false, message = "User not logged in" });
-                }
-
-                var result = await _adminRepository.ToggleLike(request.TemplateId, userId.Value);
+                var result = await _adminRepository.ToggleLikeAsync(request.TemplateId, userId.Value);
                 return Json(new
                 {
                     success = true,
@@ -143,21 +116,84 @@ namespace FormApp.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error processing like: " + ex.Message });
+                return Json(new { success = false, message = $"Error processing like: {ex.Message}" });
             }
-        }
-
-        public class ToggleLikeRequest
-        {
-            public int TemplateId { get; set; }
         }
 
         [HttpGet]
         public async Task<IActionResult> GetLikeCount(int templateId)
         {
-            var count = await _adminRepository.GetLikeCount(templateId);
-            return Json(new { count = count });
+            var count = await _adminRepository.GetLikeCountAsync(templateId);
+            return Json(new { count });
         }
 
+        [HttpGet]
+        public async Task<JsonResult> GetComments(int templateId)
+        {
+            try
+            {
+                var comments = await _adminRepository.GetCommentsAsync(templateId);
+                return Json(comments);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Failed to load comments" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> AddComment([FromBody] CommentRequestDto request)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return Json(new { success = false, message = "User not logged in" });
+            }
+
+            if (string.IsNullOrEmpty(request.Text))
+            {
+                return Json(new { success = false, message = "Comment text is required" });
+            }
+
+            var comment = new Comment
+            {
+                Text = request.Text,
+                UserId = userId.Value,
+                TemplateId = request.TemplateId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var result = await _adminRepository.AddCommentAsync(comment);
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Success ? "Comment added successfully" : "Failed to save comment",
+                comment = result.Comment
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Search(string query)
+        {
+            if (string.IsNullOrEmpty(query))
+            {
+                return Json(new { success = false, message = "Search query is required" });
+            }
+
+            try
+            {
+                var results = await _adminRepository.SearchAsync(query);
+                return Json(new { success = true, results });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+    }
+
+    public class ToggleLikeRequest
+    {
+        public int TemplateId { get; set; }
     }
 }

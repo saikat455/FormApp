@@ -8,12 +8,20 @@
     <div id="userTable"></div>
 </div>
 
+<!-- Context Menu -->
+<div id="contextMenu" class="dropdown-menu" style="display: none; position: absolute;">
+    <button class="dropdown-item" id="toggleBlockBtn"></button>
+    <button class="dropdown-item text-danger" id="deleteUserBtn">Delete</button>
+    <button class="dropdown-item" id="toggleAdminBtn"></button>
+</div>
+
 @section Scripts {
     <script src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
     <link href="https://unpkg.com/tabulator-tables@5.2.7/dist/css/tabulator.min.css" rel="stylesheet">
 
     <script>
         $(document).ready(function () {
+            var selectedUserId, selectedIsBlocked, selectedIsAdmin;
             var table = new Tabulator("#userTable", {
                 layout: "fitColumns",
                 ajaxURL: "/Admin/GetUsers",
@@ -28,22 +36,25 @@
                         formatter: function (cell) {
                             return cell.getValue() ? "Blocked" : "Active";
                         }
+                    }
+                ],
+                rowContextMenu: [
+                    {
+                        label: "Block/Unblock",
+                        action: function (e, row) {
+                            toggleBlock(row.getData().id);
+                        }
                     },
                     {
-                        title: "Actions",
-                        formatter: function (cell, formatterParams, onRendered) {
-                            var userId = cell.getRow().getData().id;
-                            var isBlocked = cell.getRow().getData().isBlocked;
-                            var isAdmin = cell.getRow().getData().isAdmin;
-                            return `
-                                <button class="btn btn-warning btn-sm" onclick="toggleBlock(${userId})">
-                                    ${isBlocked ? 'Unblock' : 'Block'}
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteUser(${userId})">Delete</button>
-                                <button class="btn btn-info btn-sm" onclick="toggleAdminStatus(${userId}, ${isAdmin})">
-                                    ${isAdmin ? 'Admin' : 'User'}
-                                </button>
-                            `;
+                        label: "Delete",
+                        action: function (e, row) {
+                            deleteUser(row.getData().id);
+                        }
+                    },
+                    {
+                        label: "Toggle Admin",
+                        action: function (e, row) {
+                            toggleAdminStatus(row.getData().id, row.getData().isAdmin);
                         }
                     }
                 ]
@@ -73,7 +84,6 @@
                 }
             };
 
-            // Toggle Admin Status
             window.toggleAdminStatus = function (userId, isAdmin) {
                 $.post('/Admin/ToggleAdminStatus', { userId: userId }, function (response) {
                     if (response.success) {
@@ -87,3 +97,4 @@
         });
     </script>
 }
+ 

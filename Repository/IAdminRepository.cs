@@ -1,20 +1,22 @@
-﻿using FormApp.Models;
+﻿using FormApp.DTO;
+using FormApp.Models;
 using System.Collections.Generic;
 
 namespace FormApp.Repositories
 {
     public interface IAdminRepository
     {
-        List<User> GetAllUsers();
-        void UpdateUser(User user);
-        void DeleteUser(int userId);
-        User GetUserById(int userId);
-        void SaveChanges();
-        bool ToggleAdminStatus(int userId);
-        void SaveAnswer(Answer answer);
-        List<Answer> GetAllAnswersWithDetails();
-        Task<(bool wasAdded, int totalLikes)> ToggleLike(int templateId, int userId);
-        Task<int> GetLikeCount(int templateId);
-        Task<bool> HasUserLiked(int templateId, int userId);
+        Task<List<UserDto>> GetAllUsersAsync();
+        Task<bool> ToggleUserBlockStatusAsync(int userId);
+        Task<bool> DeleteUserAsync(int userId);
+        Task<bool> ToggleAdminStatusAsync(int userId);
+        Task<bool> SaveAnswersBulkAsync(List<Answer> answers, int userId);
+        Task<List<AnswerDetailsDto>> GetAnswersWithDetailsAsync();
+        Task<(bool wasAdded, int totalLikes)> ToggleLikeAsync(int templateId, int userId);
+        Task<int> GetLikeCountAsync(int templateId);
+        Task<List<CommentDto>> GetCommentsAsync(int templateId);
+        Task<(bool Success, CommentDto Comment)> AddCommentAsync(Comment comment);
+        Task<List<SearchResultDto>> SearchAsync(string query);
     }
 }
+
