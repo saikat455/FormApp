@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\one\\Documents\\Github\\FormApp\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|c:\\users\\one\\documents\\github\\formapp\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|c:\\users\\one\\documents\\github\\formapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|c:\\users\\one\\documents\\github\\formapp\\repository\\adminrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|solutionrelative:repository\\adminrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -21,14 +29,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|c:\\users\\one\\documents\\github\\formapp\\repository\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|solutionrelative:repository\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|c:\\users\\one\\documents\\github\\formapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|c:\\users\\one\\documents\\github\\formapp\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{88F9AA8F-86BC-4716-9B9B-D0BC18D80DCA}|FormApp.csproj|c:\\users\\one\\documents\\github\\formapp\\repository\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -110,7 +110,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Bookmark",
@@ -119,19 +119,6 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "IAdminRepository.cs",
-              "DocumentMoniker": "C:\\Users\\one\\Documents\\Github\\FormApp\\Repository\\IAdminRepository.cs",
-              "RelativeDocumentMoniker": "Repository\\IAdminRepository.cs",
-              "ToolTip": "C:\\Users\\one\\Documents\\Github\\FormApp\\Repository\\IAdminRepository.cs",
-              "RelativeToolTip": "Repository\\IAdminRepository.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-22T05:03:07.342Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
               "Title": "AdminRepository.cs",
               "DocumentMoniker": "C:\\Users\\one\\Documents\\Github\\FormApp\\Repository\\AdminRepository.cs",
               "RelativeDocumentMoniker": "Repository\\AdminRepository.cs",
@@ -144,7 +131,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "ViewTemplateQuestions.cshtml",
               "DocumentMoniker": "C:\\Users\\one\\Documents\\Github\\FormApp\\Views\\User\\ViewTemplateQuestions.cshtml",
               "RelativeDocumentMoniker": "Views\\User\\ViewTemplateQuestions.cshtml",
@@ -169,7 +156,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 1,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\one\\Documents\\Github\\FormApp\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
@@ -177,7 +164,8 @@
               "RelativeToolTip": "Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-08T11:35:08.63Z"
+              "WhenOpened": "2025-02-08T11:35:08.63Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -205,7 +193,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "AdminController.cs",
               "DocumentMoniker": "C:\\Users\\one\\Documents\\Github\\FormApp\\Controllers\\AdminController.cs",
               "RelativeDocumentMoniker": "Controllers\\AdminController.cs",
@@ -218,19 +206,33 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 0,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\one\\Documents\\Github\\FormApp\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
               "ToolTip": "C:\\Users\\one\\Documents\\Github\\FormApp\\appsettings.json",
               "RelativeToolTip": "appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-02-07T06:18:08.273Z"
+              "WhenOpened": "2025-02-07T06:18:08.273Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
+              "Title": "IAdminRepository.cs",
+              "DocumentMoniker": "C:\\Users\\one\\Documents\\Github\\FormApp\\Repository\\IAdminRepository.cs",
+              "RelativeDocumentMoniker": "Repository\\IAdminRepository.cs",
+              "ToolTip": "C:\\Users\\one\\Documents\\Github\\FormApp\\Repository\\IAdminRepository.cs",
+              "RelativeToolTip": "Repository\\IAdminRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-22T05:03:07.342Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
               "Title": "IUserRepository.cs",
               "DocumentMoniker": "C:\\Users\\one\\Documents\\Github\\FormApp\\Repository\\IUserRepository.cs",
               "RelativeDocumentMoniker": "Repository\\IUserRepository.cs",
