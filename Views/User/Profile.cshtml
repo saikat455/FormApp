@@ -759,7 +759,7 @@
             });
         }
 
-                function performSearch() {
+        function performSearch() {
             const searchQuery = $('#searchInput').val().trim();
             if (!searchQuery) {
                 toastr.warning('Please enter a search term');
@@ -804,6 +804,7 @@
                             <p class="card-text">${result.description}</p>
                             <p class="text-muted"><strong>Type:</strong> ${result.type}</p>
                             ${result.type === 'Comment' ? `<p class="text-muted"><strong>By:</strong> ${result.userEmail}</p>` : ''}
+                            ${result.type === 'Question' ? `<p class="text-muted"><strong>Template:</strong> ${result.templateTitle}</p>` : ''}
                         </div>
                     </div>
                 `;

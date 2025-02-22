@@ -194,6 +194,19 @@ namespace FormApp.Repositories
                 .ToListAsync();
             results.AddRange(commentResults);
 
+            // Search in questions
+            var questionResults = await _context.Questions
+                .Where(q => q.Title.Contains(query) || q.Description.Contains(query))
+                .Select(q => new SearchResultDto
+                {
+                    Type = "Question",
+                    Title = q.Title,
+                    Description = q.Description,
+                    TemplateTitle = q.Template.Title
+                })
+                .ToListAsync();
+            results.AddRange(questionResults);
+
             return results;
         }
     }
