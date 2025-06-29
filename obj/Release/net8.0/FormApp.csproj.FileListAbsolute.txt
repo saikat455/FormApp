@@ -137,3 +137,10 @@ C:\Users\one\Documents\Github\FormApp\obj\Release\net8.0\refint\FormApp.dll
 C:\Users\one\Documents\Github\FormApp\obj\Release\net8.0\FormApp.pdb
 C:\Users\one\Documents\Github\FormApp\obj\Release\net8.0\FormApp.genruntimeconfig.cache
 C:\Users\one\Documents\Github\FormApp\obj\Release\net8.0\ref\FormApp.dll
+C:\Users\one\Documents\Github\FormApp\bin\Release\net8.0\BouncyCastle.Cryptography.dll
+C:\Users\one\Documents\Github\FormApp\bin\Release\net8.0\MailKit.dll
+C:\Users\one\Documents\Github\FormApp\bin\Release\net8.0\Microsoft.Extensions.Configuration.Binder.dll
+C:\Users\one\Documents\Github\FormApp\bin\Release\net8.0\Microsoft.Extensions.Options.ConfigurationExtensions.dll
+C:\Users\one\Documents\Github\FormApp\bin\Release\net8.0\MimeKit.dll
+C:\Users\one\Documents\Github\FormApp\bin\Release\net8.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\one\Documents\Github\FormApp\bin\Release\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
